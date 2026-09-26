@@ -1,0 +1,139 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hydro Monitor</title>
+<meta name="description" content="An AI farm team for small farms in Qatar — four walk-throughs of how it works, built for the Reboot the Earth hackathon.">
+<style>
+:root{
+  --bg:#0a1512; --panel:#0f1e19; --panel-2:#14261f; --border:#22392f;
+  --text:#e9f4ee; --dim:#8fac9d; --dim-2:#5f7a6c;
+  --accent:#4ade80; --accent-dim:#1f4a34;
+  --net:#38bdf8; --net-dim:#123a4d;
+  --warn:#fbbf24; --warn-dim:#4a3a12;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+  --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+  padding-inline:16px; padding-block: max(28px, env(safe-area-inset-top,0px)) max(24px, env(safe-area-inset-bottom,0px));}
+.app{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:34px}
+
+.hero{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 4px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);
+  background:var(--accent-dim);border:1px solid var(--accent);border-radius:999px;padding:5px 14px}
+.hero h1{margin:0;font-size:clamp(30px,5vw,46px);letter-spacing:-.01em}
+.hero p{margin:0;max-width:620px;color:var(--dim);font-size:15.5px;line-height:1.6}
+.hero .arch{font-family:var(--mono);font-size:11.5px;color:var(--dim-2);background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;margin-top:10px;line-height:1.7;white-space:pre;overflow-x:auto;max-width:100%}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.section-head h2{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim-2)}
+.section-head span{font-family:var(--mono);font-size:12px;color:var(--dim-2)}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:14px}
+.card{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--border);
+  border-radius:16px;padding:20px;text-decoration:none;color:inherit;transition:border-color .18s, transform .18s, box-shadow .18s}
+.card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 14px 30px -14px #000}
+.card .num{font-family:var(--mono);font-size:11px;color:var(--dim-2);letter-spacing:.06em}
+.card h3{margin:0;font-size:19px}
+.card p{margin:0;color:var(--dim);font-size:13.5px;line-height:1.55}
+.card .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.tag{font-family:var(--mono);font-size:10.5px;color:var(--net);background:var(--net-dim);border:1px solid #1c5170;
+  border-radius:999px;padding:3px 9px}
+.card .go{margin-top:auto;font-size:12.5px;color:var(--accent);font-weight:700;display:flex;align-items:center;gap:4px}
+
+.story{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+.story h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim-2)}
+.story ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;color:var(--dim);font-size:13.5px;line-height:1.55}
+.story ol b{color:var(--text)}
+
+footer{text-align:center;color:var(--dim-2);font-size:11.5px;font-family:var(--mono);padding:10px 0 6px;line-height:1.8}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--border)}
+footer a:hover{color:var(--accent);border-color:var(--accent)}
+
+@media (max-width:680px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hero">
+    <span class="eyebrow">Reboot the Earth hackathon</span>
+    <h1>Co-Farmer: Autonomous Farm Assistant</h1>
+    <p>A sensing and control kit for small farms, looked after by a team of AI specialists built for each farm —
+       demonstrated here in four short, click-through walk-throughs, end to end.</p>
+    <div class="arch">Sensor set (Nano) ──radio──► Master Node (ESP32) ──POST /log──► Farm Computer ──► Database
+                                    ▲                                                        │
+                                    └────────── GET /ranges (versioned, clamped) ◄────────────┤
+                                                                                              ▼
+every 6h or "Get fresh advice":  Summarise (code) → Code Tools → CrewAI Departments → Farm Director → Check
+                                                                                        └─► farmer board (AR / EN)</div>
+  </div>
+
+  <div>
+    <div class="section-head"><h2>Walk through the system</h2><span>4 demos · step by step</span></div>
+    <div class="grid">
+
+      <a class="card" href="onboarding.html">
+        <div class="num">01 · Onboarding</div>
+        <h3>First Conversation</h3>
+        <p>No form. The onboarding assistant asks a farmer near Al Khor a handful of plain questions, looks up
+           the weather itself, and designs the sensor kit and the AI team from the answers alone.</p>
+        <div class="tags"><span class="tag">chat</span><span class="tag">farm profile</span><span class="tag">agent design</span></div>
+        <div class="go">Open the walk-through →</div>
+      </a>
+
+      <a class="card" href="signal-path.html">
+        <div class="num">02 · Hardware</div>
+        <h3>Signal Path</h3>
+        <p>One sensor reading's full journey — radio packet to the Master Node, SD card, the farm computer,
+           the database, and a pump command sent back — entirely on-device, even if WiFi drops.</p>
+        <div class="tags"><span class="tag">ESP32</span><span class="tag">nRF24L01</span><span class="tag">SQLite</span></div>
+        <div class="go">Open the walk-through →</div>
+      </a>
+
+      <a class="card" href="daily-council.html">
+        <div class="num">03 · Agent network</div>
+        <h3>The Daily Council</h3>
+        <p>One run of the agent network: raw data pulled from the database, ten specialists, three CrewAI
+           stages, a Farm Director's plan — and the code check that catches a model's overreach before it ships.</p>
+        <div class="tags"><span class="tag">CrewAI</span><span class="tag">local models</span><span class="tag">hard limits</span></div>
+        <div class="go">Open the walk-through →</div>
+      </a>
+
+      <a class="card" href="todays-advice.html">
+        <div class="num">04 · Farmer board</div>
+        <h3>Today's Advice</h3>
+        <p>What the farmer actually sees: bed traffic-lights, the Director's message and to-dos, four numbers
+           that summarise the whole run — live, in English or Modern Standard Arabic.</p>
+        <div class="tags"><span class="tag">EN / AR</span><span class="tag">to-dos</span><span class="tag">feedback</span></div>
+        <div class="go">Open the walk-through →</div>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="story">
+    <h2>How the four fit together</h2>
+    <ol>
+      <li><b>First Conversation</b> — the assistant turns one chat into a farm profile, a hardware plan, and an AI team of specialists, all specific to this farm.</li>
+      <li><b>Signal Path</b> — the hardware it just designed goes to work: sensors report, the Master Node waters the bed on its own saved ranges, and every reading lands in the database.</li>
+      <li><b>The Daily Council</b> — every 6 hours, the agent network reads that database and turns it into a new, checked plan for the Master Node to enforce.</li>
+      <li><b>Today's Advice</b> — the same plan, in plain language, on the farmer's own phone.</li>
+    </ol>
+  </div>
+
+  <footer>
+    Hydro Monitor — an AI farm team for small farms in Qatar<br>
+    built for the Reboot the Earth hackathon
+  </footer>
+
+</div>
+</body>
+</html>
+
+</body></html>

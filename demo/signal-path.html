@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal Path — Hydro Monitor</title>
+<meta name="description" content="Hydro Monitor — Signal Path, part of a four-part demo built for the Reboot the Earth hackathon.">
+<style>
+:root{
+  --bg:#0a1512; --panel:#0f1e19; --panel-2:#14261f; --border:#22392f;
+  --text:#e9f4ee; --dim:#8fac9d; --dim-2:#5f7a6c;
+  --accent:#4ade80; --accent-dim:#1f4a34;
+  --net:#38bdf8; --net-dim:#123a4d;
+  --warn:#fbbf24; --warn-dim:#4a3a12;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+  --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+  padding-inline:16px; padding-block: max(18px, env(safe-area-inset-top,0px)) max(18px, env(safe-area-inset-bottom,0px));}
+.app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;
+  border-bottom:1px solid var(--border);padding-bottom:14px}
+.title-block h1{margin:0;font-size:22px;letter-spacing:.02em}
+.title-block .sub{color:var(--dim);font-size:13px;margin-top:4px;font-family:var(--mono)}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);
+  background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;
+  cursor:pointer;transition:border-color .15s, background .15s}
+button:hover{border-color:var(--accent);background:#16302446}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button:disabled:hover{border-color:var(--border);background:var(--panel-2)}
+
+.steps-nav{display:flex;gap:6px;flex-wrap:wrap}
+.steps-nav button{padding:6px 10px;font-size:11px;font-weight:700;font-family:var(--mono);
+  border-radius:999px;color:var(--dim)}
+.steps-nav button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+.pipeline{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px 16px}
+.row1{display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center}
+.node{width:150px;min-height:92px;background:var(--panel-2);border:1px solid var(--border);
+  border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;
+  transition:border-color .25s, box-shadow .25s, transform .25s}
+.node .kind{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim-2);font-weight:700}
+.node .name{font-size:14px;font-weight:700}
+.node .stat{font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.5}
+.node .stat b{color:var(--text);font-weight:600}
+.node.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px -4px var(--accent);transform:translateY(-2px)}
+.node.warn-active{border-color:var(--warn);box-shadow:0 0 0 1px var(--warn),0 0 18px -4px var(--warn)}
+
+.conn{flex:1 1 46px;min-width:34px;max-width:70px;height:2px;position:relative;background:var(--border);margin:0 -1px;align-self:center;top:24px}
+.conn .dot{position:absolute;top:50%;left:0;width:8px;height:8px;border-radius:50%;background:var(--dim-2);
+  transform:translate(-50%,-50%);transition:background .2s}
+.conn.net.flow{background:var(--net)}
+.conn.net.flow .dot{background:var(--net);box-shadow:0 0 8px 2px var(--net);animation:travel 1.1s ease-in-out infinite}
+.conn.act.flow{background:var(--warn)}
+.conn.act.flow .dot{background:var(--warn);box-shadow:0 0 8px 2px var(--warn);animation:travel 1.1s ease-in-out infinite}
+@keyframes travel{0%{left:0}100%{left:100%}}
+
+.branch-wrap{display:flex;justify-content:center;margin-top:6px}
+.branch{width:150px;display:flex;flex-direction:column;align-items:center;gap:0;margin-left:-330px}
+.branch .vconn{width:2px;height:26px;background:var(--border);position:relative}
+.branch .vconn .dot{position:absolute;left:50%;top:0;width:8px;height:8px;border-radius:50%;
+  background:var(--dim-2);transform:translate(-50%,-50%)}
+.branch .vconn.act.flow{background:var(--warn)}
+.branch .vconn.act.flow .dot{background:var(--warn);box-shadow:0 0 8px 2px var(--warn);animation:vtravel 1.1s ease-in-out infinite}
+.branch .vconn.act.flow.reverse .dot{animation:vtravel-rev 1.1s ease-in-out infinite}
+@keyframes vtravel{0%{top:0}100%{top:100%}}
+@keyframes vtravel-rev{0%{top:100%}100%{top:0}}
+.branch .caption{font-size:10px;color:var(--dim-2);font-family:var(--mono);margin-top:4px}
+
+.pump-icon{width:34px;height:34px;border-radius:50%;border:2px solid var(--dim-2);display:flex;
+  align-items:center;justify-content:center;font-size:15px;align-self:flex-end;transition:.2s}
+.pump-icon.on{border-color:var(--warn);background:var(--warn-dim);box-shadow:0 0 12px -2px var(--warn)}
+
+.detail{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card h2{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim-2)}
+.step-title{font-size:17px;font-weight:700;margin-bottom:6px}
+.step-desc{font-size:13.5px;color:var(--dim);line-height:1.55}
+pre.payload{font-family:var(--mono);font-size:12.5px;line-height:1.6;background:#081210;
+  border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;margin:10px 0 0;color:#bdeed6}
+pre.payload .k{color:var(--net)}
+pre.payload .v{color:var(--accent)}
+pre.payload .c{color:var(--dim-2)}
+
+.console{background:#070f0d;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+  height:150px;overflow-y:auto;font-family:var(--mono);font-size:12px;line-height:1.65}
+.console .ln{color:var(--dim);white-space:pre-wrap;word-break:break-word}
+.console .ln.hi{color:var(--accent)}
+.console .ln.net{color:var(--net)}
+.console .ln.warn{color:var(--warn)}
+.console .ln .t{color:var(--dim-2)}
+
+footer{text-align:center;color:var(--dim-2);font-size:11px;font-family:var(--mono);padding:4px 0 10px}
+
+@media (max-width:760px){
+  .detail{grid-template-columns:1fr}
+  .row1{flex-direction:column;gap:10px}
+  .conn{width:2px;height:20px;top:0;max-width:none}
+  .conn .dot{left:50%;top:0;transform:translate(-50%,-50%);animation:none}
+  .conn.net.flow .dot{animation:vtravel 1.1s ease-in-out infinite}
+  .conn.act.flow .dot{animation:vtravel 1.1s ease-in-out infinite}
+  .branch{margin-left:0}
+  .node{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title-block">
+      <h1>Signal Path</h1>
+      <div class="sub" id="subline">step 1 / 9 — sensor node reads the field</div>
+    </div>
+    <div class="controls">
+      <button id="btnReset">↺ Reset</button>
+      <button id="btnPrev">← Prev</button>
+      <button id="btnPlay" class="primary">▶ Auto</button>
+      <button id="btnNext" class="primary">Next →</button>
+    </div>
+  </header>
+
+  <div class="steps-nav" id="stepsNav"></div>
+
+  <div class="pipeline">
+    <div class="row1">
+      <div class="node" id="n-sensor">
+        <div class="kind">Field F1 · Nano Every</div>
+        <div class="name">Sensor Node (S1)</div>
+        <div class="stat" id="sensorStat"></div>
+      </div>
+      <div class="conn net" id="c-sm"><div class="dot"></div></div>
+      <div class="node" id="n-master">
+        <div class="kind">ESP32 + SD</div>
+        <div class="name">Master Node</div>
+        <div class="stat" id="masterStat"></div>
+      </div>
+      <div class="conn net" id="c-mb"><div class="dot"></div></div>
+      <div class="node" id="n-backend">
+        <div class="kind">FastAPI · POST /log</div>
+        <div class="name">Farm Computer</div>
+        <div class="stat" id="backendStat"></div>
+      </div>
+      <div class="conn net" id="c-bd"><div class="dot"></div></div>
+      <div class="node" id="n-db">
+        <div class="kind">SQLite</div>
+        <div class="name">Database</div>
+        <div class="stat" id="dbStat"></div>
+      </div>
+    </div>
+    <div class="branch-wrap">
+      <div class="branch">
+        <div class="vconn act" id="c-ma"><div class="dot"></div></div>
+        <div class="node" id="n-actuator" style="width:170px">
+          <div class="kind">Field F1 · Nano Every</div>
+          <div class="name" style="display:flex;justify-content:space-between;align-items:center">
+            Actuator Node (A1) <span class="pump-icon" id="pumpIcon">⏸</span>
+          </div>
+          <div class="stat" id="actuatorStat"></div>
+        </div>
+        <div class="caption">branches from the Master Node</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="card">
+      <h2>What's happening</h2>
+      <div class="step-title" id="stepTitle"></div>
+      <div class="step-desc" id="stepDesc"></div>
+      <pre class="payload" id="payload"></pre>
+    </div>
+    <div class="card">
+      <h2>Event log</h2>
+      <div class="console" id="console"></div>
+    </div>
+  </div>
+
+  <footer>field_id,module_id,device_id,type,kind,value,unit,timestamp — the same log row format from sensor set to database</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function rnd(min,max,dec){ dec = dec===undefined?1:dec; return +(min+Math.random()*(max-min)).toFixed(dec); }
+  function nowISO(){
+    var d = new Date(Date.now()+3*3600*1000);
+    var p = function(n){return String(n).padStart(2,"0")};
+    return d.getUTCFullYear()+"-"+p(d.getUTCMonth()+1)+"-"+p(d.getUTCDate())+"T"+p(d.getUTCHours())+":"+p(d.getUTCMinutes())+":"+p(d.getUTCSeconds())+"+03:00";
+  }
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]}); }
+  function span(cls,s){ return '<span class="'+cls+'">'+esc(s)+"</span>"; }
+
+  var R = { temp: 0, hum: 0, soil: 0, light: 0, level: 0, ts: "" };
+  function roll(){
+    R.temp = rnd(30,37,1);
+    R.hum = rnd(28,48,1);
+    R.soil = rnd(21,27,1);      // deliberately under the 30% minimum, so the pump always fires
+    R.light = Math.round(rnd(400,1600,0));
+    R.level = Math.round(rnd(52,84,0));
+    R.ts = nowISO();
+  }
+  roll();
+
+  function csvRow(dev,kind,val,unit){
+    return "F1,S1,"+dev+",reading,"+kind+","+val+","+unit+","+R.ts;
+  }
+  function actionRow(state){
+    return "F1,A1,relay1,action,pump,"+state+",,"+nowISO();
+  }
+
+  var STEPS = [
+    { // 0
+      title: "Sensor set samples the field",
+      desc: "Every ~10 seconds the Sensor Node (Arduino Nano Every) reads its DHT11, soil moisture, light and water-level probes for field F1.",
+      active: ["n-sensor"],
+      payload: function(){
+        return span("c","// four raw analog / I2C readings, field F1")+"\n"+
+          "temp_air     = "+span("v",R.temp)+" °C\n"+
+          "humidity     = "+span("v",R.hum)+" %\n"+
+          "soil_moisture= "+span("v",R.soil)+" %\n"+
+          "light        = "+span("v",R.light)+" lux\n"+
+          "level (tank) = "+span("v",R.level)+" %";
+      },
+      log: ["[S1] sampling DHT11, soil probe, BH1750, water level..."],
+      sensorStat: true
+    },
+    { // 1
+      title: "Radio packet → Master Node",
+      desc: "Each reading is packed into a 32-byte struct and radioed over nRF24L01 to the Master Node's reading pipe.",
+      active: ["n-sensor","n-master"], flow: "c-sm",
+      payload: function(){
+        return span("c","struct RadioPacket {")+"\n"+
+          "  msg_type  = "+span("v","1")+span("c"," // TYPE_READING")+"\n"+
+          "  field_id  = "+span("v",'"F1"')+"\n"+
+          "  module_id = "+span("v",'"S1"')+"\n"+
+          "  device_id = "+span("v",'"soil"')+"\n"+
+          "  kind      = "+span("v",'"soil_moisture"')+"\n"+
+          "  value     = "+span("v",R.soil)+"\n"+
+          "}";
+      },
+      log: ["[S1→M1] nRF24L01 packet sent (32B) · pipe 0xE8E8F0F0E1"],
+      sensorStat: true
+    },
+    { // 2
+      title: "Master Node logs to the SD card",
+      desc: "The Master timestamps every packet (NTP, ISO 8601 +03:00) and appends a CSV row to /readings.csv — the black box that never depends on WiFi.",
+      active: ["n-master"], sdWrite: true,
+      payload: function(){
+        return span("c","// appended to /readings.csv")+"\n"+
+          csvRow("dht11","temp_air",R.temp,"C")+"\n"+
+          csvRow("dht11","humidity",R.hum,"%")+"\n"+
+          csvRow("soil","soil_moisture",R.soil,"%")+"\n"+
+          csvRow("light","light",R.light,"lux")+"\n"+
+          csvRow("level","level",R.level,"%");
+      },
+      log: ["[M1] SD WRITE → /readings.csv (5 rows)"],
+      masterStat: "5 rows staged"
+    },
+    { // 3
+      title: "POST /log → the farm computer",
+      desc: "The same rows go over WiFi to the FastAPI endpoint as plain CSV. If the laptop is unreachable, the rows just wait on the SD card.",
+      active: ["n-master","n-backend"], flow: "c-mb",
+      payload: function(){
+        return span("k","POST")+" /log HTTP/1.1\nContent-Type: text/csv\n\n"+
+          csvRow("dht11","temp_air",R.temp,"C")+"\n"+
+          csvRow("soil","soil_moisture",R.soil,"%")+"\n"+
+          span("c","... 3 more rows");
+      },
+      log: ["[M1→API] POST /log  (5 rows, text/csv)"],
+      masterStat: "sending..."
+    },
+    { // 4
+      title: "Stored in SQLite",
+      desc: "The backend validates every row and writes it to the log table, tagged with the active farm. The dashboard and the agent network read from here — never the radio directly.",
+      active: ["n-backend","n-db"], flow: "c-bd", dbWrite: 5,
+      payload: function(){
+        return span("k","200 OK")+"\n"+span("v",'{"stored": 5}')+"\n\n"+span("c","INSERT INTO log (field_id, module_id, device_id, type, kind, value, unit, timestamp, ts, received_at)")+"\n"+span("c","VALUES (...) × 5");
+      },
+      log: ["[API] 200 OK · {\"stored\": 5} · db rows total = 5"],
+      backendStat: "5 rows stored", masterStat: "ack received"
+    },
+    { // 5
+      title: "Range check — on the Master Node, not the computer",
+      desc: "The Master compares this reading to the range it already holds in RAM, from its last GET /ranges — entirely on the ESP32, no round trip to the farm computer. "+R.soil+"% is below the 30% minimum, so it decides to water. This is why the field stays safe even if WiFi or the laptop goes down.",
+      active: ["n-master"], warnActive: ["n-master"],
+      payload: function(){
+        return span("c","ranges in force · F1 · held on the Master's SD card")+"\n"+
+          "soil_moisture: ["+span("v","30")+", "+span("v","45")+"]  ← min\n"+
+          "reading:        "+span("v",R.soil)+span("c","   // below minimum")+"\n\n"+
+          span("k","decision (on-device)")+": pump ON for pump_seconds = "+span("v","120")+"s";
+      },
+      log: ["[M1] soil_moisture "+R.soil+"% < 30% min (its own saved ranges) → trigger pump (F1, 120s)"],
+      masterStat: "trigger: pump F1"
+    },
+    { // 6
+      title: "Command → Actuator Node",
+      desc: "The Master radios a command packet to the Actuator Node's pipe — a fixed run time, never an open-ended \"on\".",
+      active: ["n-master","n-actuator"], branchFlow: true,
+      payload: function(){
+        return span("c","struct RadioPacket {")+"\n"+
+          "  msg_type  = "+span("v","3")+span("c"," // TYPE_COMMAND")+"\n"+
+          "  field_id  = "+span("v",'"F1"')+"\n"+
+          "  module_id = "+span("v",'"A1"')+"\n"+
+          "  device_id = "+span("v",'"relay1"')+"\n"+
+          "  kind      = "+span("v",'"pump"')+"\n"+
+          "  value     = "+span("v","120")+span("c"," // seconds, capped at 300")+"\n"+
+          "}";
+      },
+      log: ["[M1→A1] TYPE_COMMAND · relay1 · 120s"],
+      masterStat: "commanding A1"
+    },
+    { // 7
+      title: "Relay activates, and logs back",
+      desc: "The drip-line pump switches on. The Actuator Node radios an activation packet back to the Master, which logs and forwards it exactly like a sensor reading.",
+      active: ["n-actuator","n-master"], branchFlowReverse: true, pumpOn: true, dbWrite: 6,
+      payload: function(){
+        return span("c","// relay1 → HIGH, then logged and forwarded")+"\n"+
+          actionRow("activated")+"\n\n"+span("k","POST")+" /log → "+span("v",'{"stored": 1}');
+      },
+      log: ["[A1→M1] TYPE_ACTION · relay1 · activated","[M1→API] POST /log → {\"stored\": 1} · db rows total = 6"],
+      actuatorStat: "relay1: ON", masterStat: "logging action"
+    },
+    { // 8
+      title: "Loop closed: ranges refresh",
+      desc: "120 seconds later the pump switches off on its own and logs \"deactivated\". Separately, the Master polls the backend for a newer ranges version — the AI plan the field is actually enforcing.",
+      active: ["n-master","n-backend"], flow: "c-mb", dbWrite: 7,
+      payload: function(){
+        return actionRow("deactivated")+"\n\n"+span("k","GET")+" /ranges/version → "+span("v",'{"version": 13}')+"\n"+span("k","GET")+" /ranges?have=12 → "+span("v",'{"version":13,"F1":{"soil_moisture":[30,45],"pump_seconds":120,...}}');
+      },
+      log: ["[A1→M1] TYPE_ACTION · relay1 · deactivated","[M1] version 12 → 13: new ranges saved to SD, now enforcing"],
+      actuatorStat: "relay1: off", masterStat: "on plan v13"
+    }
+  ];
+
+  var i = 0, playing = false, timer = null;
+
+  var nodeIds = ["n-sensor","n-master","n-backend","n-db","n-actuator"];
+  var connIds = ["c-sm","c-mb","c-bd"];
+
+  var nav = document.getElementById("stepsNav");
+  STEPS.forEach(function(s,idx){
+    var b = document.createElement("button");
+    b.textContent = (idx+1);
+    b.title = s.title;
+    b.addEventListener("click", function(){ go(idx); });
+    nav.appendChild(b);
+  });
+
+  function render(){
+    var s = STEPS[i];
+
+    nodeIds.forEach(function(id){
+      var el = document.getElementById(id);
+      el.classList.toggle("active", (s.active||[]).indexOf(id) !== -1);
+      el.classList.toggle("warn-active", (s.warnActive||[]).indexOf(id) !== -1);
+    });
+    connIds.forEach(function(id){
+      document.getElementById(id).classList.toggle("flow", s.flow === id);
+    });
+    var branch = document.getElementById("c-ma");
+    branch.classList.toggle("flow", !!(s.branchFlow || s.branchFlowReverse));
+    branch.classList.toggle("reverse", !!s.branchFlowReverse);
+
+    document.getElementById("pumpIcon").textContent = s.pumpOn ? "💧" : "⏸";
+    document.getElementById("pumpIcon").classList.toggle("on", !!s.pumpOn);
+
+    document.getElementById("sensorStat").innerHTML = "temp "+R.temp+"°C · hum "+R.hum+"% · soil "+R.soil+"%";
+    document.getElementById("masterStat").textContent = s.masterStat || "idle";
+    document.getElementById("backendStat").textContent = s.backendStat || (s.dbWrite ? s.dbWrite+" rows stored" : "listening");
+    document.getElementById("dbStat").textContent = "rows: "+(s.dbWrite || (i>0?STEPS[Math.min(i,4)].dbWrite||0:0)||0);
+    document.getElementById("actuatorStat").textContent = s.actuatorStat || "relay1: standby";
+
+    document.getElementById("stepTitle").textContent = (i+1)+". "+s.title;
+    document.getElementById("stepDesc").textContent = s.desc;
+    document.getElementById("payload").innerHTML = s.payload();
+    document.getElementById("subline").textContent = "step "+(i+1)+" / "+STEPS.length+" — "+s.title.toLowerCase();
+
+    var lines = [];
+    for (var k=0;k<=i;k++){
+      STEPS[k].log.forEach(function(l){ lines.push({t:"t+"+(k*4)+"s", text:l, step:k}); });
+    }
+    var cons = document.getElementById("console");
+    cons.innerHTML = lines.map(function(l){
+      var cls = "ln" + (l.step===i ? " hi" : "") + (/→ HTTP|POST |GET /.test(l.text) ? " net":"") + (/trigger|ON|activated/.test(l.text) && l.step===i ? " warn":"");
+      return '<div class="'+cls+'"><span class="t">'+l.t+"  </span>"+esc(l.text)+"</div>";
+    }).join("");
+    cons.scrollTop = cons.scrollHeight;
+
+    Array.prototype.forEach.call(nav.children, function(b,idx){ b.classList.toggle("on", idx===i); });
+    document.getElementById("btnPrev").disabled = i===0;
+    document.getElementById("btnNext").disabled = i===STEPS.length-1;
+  }
+
+  function go(idx){ i = Math.max(0, Math.min(STEPS.length-1, idx)); render(); }
+  function next(){ if (i < STEPS.length-1) { go(i+1); } else { stop(); } }
+  function prev(){ go(i-1); }
+  function play(){ playing = true; document.getElementById("btnPlay").textContent = "⏸ Pause";
+    timer = setInterval(function(){ if (i>=STEPS.length-1){ stop(); } else { next(); } }, 3200); }
+  function stop(){ playing = false; document.getElementById("btnPlay").textContent = "▶ Auto"; clearInterval(timer); }
+
+  document.getElementById("btnNext").addEventListener("click", function(){ stop(); next(); });
+  document.getElementById("btnPrev").addEventListener("click", function(){ stop(); prev(); });
+  document.getElementById("btnPlay").addEventListener("click", function(){ playing ? stop() : play(); });
+  document.getElementById("btnReset").addEventListener("click", function(){ stop(); roll(); go(0); });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key==="ArrowRight"){ stop(); next(); }
+    if (e.key==="ArrowLeft"){ stop(); prev(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

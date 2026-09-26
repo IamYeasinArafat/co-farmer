@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today's Advice — Hydro Monitor</title>
+<meta name="description" content="Hydro Monitor — Today's Advice, part of a four-part demo built for the Reboot the Earth hackathon.">
+<style>
+:root{
+  --bg:#0a1512; --panel:#0f1e19; --panel-2:#14261f; --border:#22392f;
+  --text:#e9f4ee; --dim:#8fac9d; --dim-2:#5f7a6c;
+  --accent:#4ade80; --accent-dim:#1f4a34;
+  --net:#38bdf8; --net-dim:#123a4d;
+  --warn:#fbbf24; --warn-dim:#4a3a12;
+  --bad:#f87171; --bad-dim:#4a1f1f;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+  --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+  padding-inline:16px; padding-block: max(18px, env(safe-area-inset-top,0px)) max(18px, env(safe-area-inset-bottom,0px));}
+.app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;
+  border-bottom:1px solid var(--border);padding-bottom:14px}
+.title-block h1{margin:0;font-size:22px;letter-spacing:.02em}
+.title-block .sub{color:var(--dim);font-size:13px;margin-top:4px;font-family:var(--mono)}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);
+  background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;
+  cursor:pointer;transition:border-color .15s, background .15s}
+button:hover{border-color:var(--accent);background:#16302446}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button:disabled:hover{border-color:var(--border);background:var(--panel-2)}
+
+.steps-nav{display:flex;gap:6px;flex-wrap:wrap}
+.steps-nav button{padding:6px 10px;font-size:11px;font-weight:700;font-family:var(--mono);
+  border-radius:999px;color:var(--dim)}
+.steps-nav button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+.caption{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+.caption h2{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim-2)}
+.step-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.step-desc{font-size:13.5px;color:var(--dim);line-height:1.55}
+
+.stage{display:flex;justify-content:center}
+.phone{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--border);border-radius:22px;
+  padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 50px -20px #000}
+
+.pbar{display:flex;align-items:center;justify-content:space-between}
+.pbar .who{font-size:15px;font-weight:700}
+.pbar .where{font-size:11px;color:var(--dim-2);font-family:var(--mono)}
+.langtoggle{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px}
+
+.meta{font-size:11px;color:var(--dim-2);font-family:var(--mono);display:flex;justify-content:space-between}
+.weather{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12.5px;color:var(--dim)}
+.weather b{color:var(--text)}
+.weather.empty{color:var(--dim-2);font-style:italic}
+
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim-2);font-weight:700;margin-top:2px}
+
+.bedgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bed{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:11.5px}
+.bed.empty{color:var(--dim-2);font-style:italic;text-align:center;padding:18px 8px}
+.bed .top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.dot.ok{background:var(--accent);box-shadow:0 0 6px 1px var(--accent)}
+.dot.watch{background:var(--warn);box-shadow:0 0 6px 1px var(--warn)}
+.dot.act{background:var(--bad);box-shadow:0 0 6px 1px var(--bad)}
+.bed .fid{font-weight:700;font-size:12.5px}
+.bed .crop{color:var(--dim-2);font-size:10px}
+.bed .headline{color:var(--text);margin-bottom:2px}
+.bed .more{color:var(--dim);font-size:10.5px}
+.bed .stats{display:flex;gap:8px;margin-top:6px;font-family:var(--mono);color:var(--dim-2);font-size:10px;flex-wrap:wrap}
+.bed .stats b{color:var(--text)}
+
+.advice{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:12px}
+.advice.empty{color:var(--dim-2);font-style:italic;font-size:12.5px;text-align:center}
+.advice .msg{font-size:13px;line-height:1.55;color:var(--text)}
+.advice .msg.ar{direction:rtl;text-align:right;font-family:var(--sans)}
+.advice .fb{display:flex;gap:8px;margin-top:10px}
+.advice .fb button{font-size:11.5px;padding:6px 10px}
+.advice .fb button.picked{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.advice .toast{font-size:11px;color:var(--accent);margin-top:6px;display:none}
+.advice .toast.show{display:block}
+
+.todos{display:flex;flex-direction:column;gap:6px}
+.todo{display:flex;align-items:flex-start;gap:8px;background:var(--panel-2);border:1px solid var(--border);
+  border-radius:10px;padding:8px 10px;font-size:12px;cursor:pointer}
+.todo .box{width:15px;height:15px;border:1.5px solid var(--dim-2);border-radius:4px;flex:0 0 auto;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--bg)}
+.todo.done .box{background:var(--accent);border-color:var(--accent)}
+.todo.done span.txt{color:var(--dim-2);text-decoration:line-through}
+.todo.dir{direction:rtl;text-align:right}
+
+.teamstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.chip{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 4px;text-align:center}
+.chip .n{font-size:16px;font-weight:800;color:var(--accent)}
+.chip .lbl{font-size:9px;color:var(--dim-2);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;line-height:1.3}
+
+.getbtn{width:100%;padding:11px;font-size:13px}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}50%{box-shadow:0 0 0 5px rgba(74,222,128,0)}}
+.fade{animation:fadein .35s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+footer{text-align:center;color:var(--dim-2);font-size:11px;font-family:var(--mono);padding:4px 0 10px}
+
+@media (max-width:760px){ .teamstats{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title-block">
+      <h1>Today's Advice</h1>
+      <div class="sub" id="subline">step 1 / 9 — the board, empty</div>
+    </div>
+    <div class="controls">
+      <button id="btnReset">↺ Reset</button>
+      <button id="btnPrev">← Prev</button>
+      <button id="btnPlay" class="primary">▶ Auto</button>
+      <button id="btnNext" class="primary">Next →</button>
+    </div>
+  </header>
+
+  <div class="steps-nav" id="stepsNav"></div>
+
+  <div class="caption">
+    <h2>What the farmer sees</h2>
+    <div class="step-title" id="stepTitle"></div>
+    <div class="step-desc" id="stepDesc"></div>
+  </div>
+
+  <div class="stage">
+    <div class="phone">
+      <div class="pbar">
+        <div><div class="who" id="whoLabel">My farm</div><div class="where">Al Khor · alkhor</div></div>
+        <button class="langtoggle" id="btnLang">EN / AR</button>
+      </div>
+      <div class="meta"><span id="updatedLabel">Updated —:—</span><span id="dayLabel"></span></div>
+      <div class="weather empty" id="weatherBox">No readings yet</div>
+
+      <div id="bedsSection" style="display:none">
+        <div class="section-label" id="bedsLabel">Your beds</div>
+        <div class="bedgrid" id="bedGrid"></div>
+      </div>
+
+      <div id="adviceSection">
+        <div class="section-label" id="adviceLabel">Today's advice</div>
+        <div class="advice empty" id="adviceBox">
+          <div id="noAdvice">No advice yet: press "Get fresh advice".</div>
+          <button class="primary getbtn pulse" id="btnGetAdvice" style="margin-top:8px">Get fresh advice</button>
+        </div>
+      </div>
+
+      <div id="todosSection" style="display:none">
+        <div class="section-label" id="todoLabel">To do</div>
+        <div class="todos" id="todoList"></div>
+      </div>
+
+      <div id="teamSection" style="display:none">
+        <div class="section-label" id="teamLabel">Your AI farm team</div>
+        <div class="teamstats" id="teamStats"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>farmer_view.py — no numbers without meaning, no code words · works in English and Modern Standard Arabic</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var lang = "en";
+
+  var MSG_EN = "It's very hot today — up to 41°C around 13:20. F1 is drying much faster than F2, so I've made it water sooner and for longer; the tank has enough. Please check F1's drip line for a possible blockage. Put up shade cloth over the beds between about 11:00 and 15:00.";
+  var MSG_AR = "الجو حار جداً اليوم — حتى 41 درجة مئوية حوالي الساعة 13:20. حوض F1 يجف أسرع بكثير من F2، فجعلت المضخة تسقيه أبكر ولفترة أطول؛ الخزان يكفي. الرجاء فحص خط التنقيط في F1 للتحقق من وجود انسداد. ضع شبك التظليل على الأحواض تقريباً من الساعة 11:00 حتى 15:00.";
+  var TODOS_EN = [
+    "Check F1's drip emitters for a blockage — it's drying about 3× faster than F2",
+    "Put up shade cloth over the beds from 11:00 to 15:00 (forecast 41°C)"
+  ];
+  var TODOS_AR = [
+    "افحص نقاطات الري في F1 للتحقق من انسداد — فهو يجف بمعدل ثلاث مرات أسرع من F2",
+    "ضع شبك التظليل على الأحواض من الساعة 11:00 إلى 15:00 (الطقس المتوقع 41 درجة)"
+  ];
+
+  var BEDS = {
+    F1: {status:"watch", headline_en:"Dry: the pump is watering it", headline_ar:"جافة: المضخة تسقيه الآن",
+         more_en:"Hot (36°C): shade cloth helps at midday", more_ar:"حار (36°م): الغطاء الظليل يساعد وقت الظهيرة",
+         crop_en:"Purple amaranth · day 22", crop_ar:"السرمق البنفسجي · اليوم 22",
+         soil:"34%", temp:"36°C", tank:"62%", watered_en:"3 min ago", watered_ar:"قبل 3 دقيقة"},
+    F2: {status:"watch", headline_en:"Soil moisture is good", headline_ar:"رطوبة التربة جيدة",
+         more_en:"Hot (36°C): shade cloth helps at midday", more_ar:"حار (36°م): الغطاء الظليل يساعد وقت الظهيرة",
+         crop_en:"Purple amaranth · day 22", crop_ar:"السرمق البنفسجي · اليوم 22",
+         soil:"41%", temp:"36°C", tank:"62%", watered_en:"2 h ago", watered_ar:"قبل 2 ساعة"}
+  };
+
+  var UI = {
+    my_farm: ["My farm", "مزرعتي"],
+    updated: ["Updated 12:11", "آخر تحديث 12:11"],
+    day: ["Sat 26 Sep", "السبت 26 سبتمبر"],
+    weather: ["Up to <b>41°C</b> today, hottest around <b>13:20</b>", "حتى <b>41°م</b> اليوم، الأشد حرارة حوالي <b>13:20</b>"],
+    beds: ["Your beds", "أحواضك"],
+    advice: ["Today's advice", "نصيحة اليوم"],
+    todo: ["To do", "المطلوب منك"],
+    team: ["Your AI farm team", "فريقك الذكي للمزرعة"],
+    helpful: ["👍 Helpful", "👍 مفيد"],
+    correct: ["✏️ Correct it", "✏️ صحّح"],
+    thanks: ["Thanks, noted.", "شكراً، تم التسجيل."],
+    getbtn: ["Get fresh advice", "احصل على نصيحة جديدة"],
+    checking: ["The AI team checks your farm (takes a few minutes)…", "يفحص فريق الذكاء الاصطناعي مزرعتك (يستغرق بضع دقائق)…"]
+  };
+  function ui(key){ return UI[key][lang==="ar"?1:0]; }
+
+  var teamStats = [
+    {n:"1", lbl_en:"checked by code", lbl_ar:"راجعها النظام"},
+    {n:"2", lbl_en:"setting changes", lbl_ar:"تعديلات"},
+    {n:"3", lbl_en:"warnings", lbl_ar:"تنبيهات"},
+    {n:"2", lbl_en:"to-dos", lbl_ar:"مهام"}
+  ];
+
+  var STEPS = [
+    { title: "Before the run — the board, empty",
+      desc: "farmer_view.py builds every screen straight from the database and the ranges in force — no numbers without meaning, no code words — and it works even before the first agent run.",
+      show: {} },
+    { title: "“Get fresh advice” kicks off the agent network",
+      desc: "This is exactly the run The Daily Council just showed — summarise, code tools, four departments, the Farm Director, the check. The farmer only sees a short wait.",
+      show: {checking:true} },
+    { title: "Weather today",
+      desc: "Straight from Open-Meteo — no model needed for this part.",
+      show: {weather:true} },
+    { title: "Your beds, at a glance",
+      desc: "Each card is a traffic light plus one plain sentence, computed by code from the new ranges and the latest reading — never written by a model.",
+      show: {weather:true, beds:true} },
+    { title: "Today's advice",
+      desc: "The Farm Director's own message, unchanged from what The Daily Council produced: at most four short sentences, in the farmer's own language.",
+      show: {weather:true, beds:true, advice:true} },
+    { title: "To do",
+      desc: "Concrete tasks for a person, most urgent first — never a task for the system itself.",
+      show: {weather:true, beds:true, advice:true, todos:true} },
+    { title: "The big picture",
+      desc: "Four numbers a farmer can trust without reading a single report: what was checked, what changed, what needs watching, what needs a person.",
+      show: {weather:true, beds:true, advice:true, todos:true, team:true} },
+    { title: "The farmer talks back",
+      desc: "Marking a to-do done, or tapping Helpful / Correct it, is the only feedback loop in the system — plain, and saved with the run it came from. Try the buttons below.",
+      show: {weather:true, beds:true, advice:true, todos:true, team:true}, invite:true },
+    { title: "The same screen, in Arabic",
+      desc: "message_ar and todos_ar come from the same run — Modern Standard Arabic, with every number, unit and field name (F1, F2) kept exactly as written.",
+      show: {weather:true, beds:true, advice:true, todos:true, team:true}, forceLang:"ar" }
+  ];
+
+  var i = 0, playing = false, timer = null;
+  var todoState = [false, false];
+  var fb = null; // "helpful" | "correct" | null
+
+  var nav = document.getElementById("stepsNav");
+  STEPS.forEach(function(s,idx){
+    var b = document.createElement("button");
+    b.textContent = (idx+1);
+    b.title = s.title;
+    b.addEventListener("click", function(){ go(idx); });
+    nav.appendChild(b);
+  });
+
+  function esc(s){ return String(s).replace(/[&<]/g, function(c){return {"&":"&amp;","<":"&lt;"}[c]}); }
+
+  function renderBeds(){
+    var grid = document.getElementById("bedGrid");
+    grid.innerHTML = Object.keys(BEDS).map(function(fid){
+      var b = BEDS[fid];
+      var headline = lang==="ar" ? b.headline_ar : b.headline_en;
+      var more = lang==="ar" ? b.more_ar : b.more_en;
+      var crop = lang==="ar" ? b.crop_ar : b.crop_en;
+      var watered = lang==="ar" ? b.watered_ar : b.watered_en;
+      return '<div class="bed fade'+(lang==="ar"?' dir':'')+'">'+
+        '<div class="top"><span class="dot '+b.status+'"></span><span class="fid">'+fid+'</span></div>'+
+        '<div class="crop">'+esc(crop)+'</div>'+
+        '<div class="headline">'+esc(headline)+'</div>'+
+        '<div class="more">'+esc(more)+'</div>'+
+        '<div class="stats"><span>soil <b>'+b.soil+'</b></span><span>air <b>'+b.temp+'</b></span>'+
+        '<span>tank <b>'+b.tank+'</b></span><span>watered <b>'+esc(watered)+'</b></span></div></div>';
+    }).join("");
+  }
+
+  function renderAdviceBox(){
+    var box = document.getElementById("adviceBox");
+    box.classList.remove("empty");
+    var msg = lang==="ar" ? MSG_AR : MSG_EN;
+    box.innerHTML =
+      '<div class="msg fade'+(lang==="ar"?' ar':'')+'">'+esc(msg)+'</div>'+
+      '<div class="fb">'+
+        '<button data-fb="helpful" class="'+(fb==="helpful"?"picked":"")+'">'+ui("helpful")+'</button>'+
+        '<button data-fb="correct" class="'+(fb==="correct"?"picked":"")+'">'+ui("correct")+'</button>'+
+      '</div>'+
+      '<div class="toast'+(fb?' show':'')+'">'+ui("thanks")+'</div>';
+    Array.prototype.forEach.call(box.querySelectorAll("[data-fb]"), function(btn){
+      btn.addEventListener("click", function(){ fb = btn.getAttribute("data-fb"); renderAdviceBox(); });
+    });
+  }
+
+  function renderTodos(){
+    var list = document.getElementById("todoList");
+    var arr = lang==="ar" ? TODOS_AR : TODOS_EN;
+    list.innerHTML = arr.map(function(text, idx){
+      var done = todoState[idx];
+      return '<div class="todo fade'+(done?" done":"")+(lang==="ar"?" dir":"")+'" data-idx="'+idx+'">'+
+        '<span class="box">'+(done?"✓":"")+'</span><span class="txt">'+esc(text)+'</span></div>';
+    }).join("");
+    Array.prototype.forEach.call(list.querySelectorAll(".todo"), function(el){
+      el.addEventListener("click", function(){
+        var idx = +el.getAttribute("data-idx");
+        todoState[idx] = !todoState[idx];
+        renderTodos();
+      });
+    });
+  }
+
+  function renderTeam(){
+    document.getElementById("teamStats").innerHTML = teamStats.map(function(c){
+      return '<div class="chip fade"><div class="n">'+c.n+'</div><div class="lbl">'+esc(lang==="ar"?c.lbl_ar:c.lbl_en)+'</div></div>';
+    }).join("");
+  }
+
+  function render(){
+    var s = STEPS[i];
+    if (s.forceLang) lang = s.forceLang;
+
+    document.getElementById("stepTitle").textContent = (i+1)+". "+s.title;
+    document.getElementById("stepDesc").textContent = s.desc;
+    document.getElementById("subline").textContent = "step "+(i+1)+" / "+STEPS.length+" — "+s.title.toLowerCase();
+
+    document.getElementById("whoLabel").textContent = ui("my_farm");
+    document.getElementById("updatedLabel").textContent = ui("updated");
+    document.getElementById("dayLabel").textContent = ui("day");
+    document.getElementById("bedsLabel").textContent = ui("beds");
+    document.getElementById("adviceLabel").textContent = ui("advice");
+    document.getElementById("todoLabel").textContent = ui("todo");
+    document.getElementById("teamLabel").textContent = ui("team");
+    document.querySelector(".phone").setAttribute("dir", lang==="ar" ? "rtl" : "ltr");
+
+    var weatherBox = document.getElementById("weatherBox");
+    if (s.show.weather){ weatherBox.classList.remove("empty"); weatherBox.innerHTML = ui("weather"); }
+    else { weatherBox.classList.add("empty"); weatherBox.textContent = lang==="ar" ? "لا توجد قراءات من الحساسات بعد." : "No readings from the sensors yet."; }
+
+    document.getElementById("bedsSection").style.display = s.show.beds ? "block" : "none";
+    if (s.show.beds) renderBeds();
+
+    var adviceBox = document.getElementById("adviceBox");
+    if (s.show.advice){
+      renderAdviceBox();
+    } else if (s.checking){
+      adviceBox.classList.add("empty");
+      adviceBox.innerHTML = '<div>⏳ '+ui("checking")+'</div>';
+    } else {
+      adviceBox.classList.add("empty");
+      adviceBox.innerHTML = (lang==="ar" ? "لا توجد نصيحة بعد: اضغط «احصل على نصيحة جديدة»." : 'No advice yet: press "Get fresh advice".')+
+        '<div><button class="primary getbtn pulse" id="btnGetAdvice2" style="margin-top:8px">'+ui("getbtn")+'</button></div>';
+      var b2 = document.getElementById("btnGetAdvice2");
+      if (b2) b2.addEventListener("click", function(){ stop(); next(); });
+    }
+
+    document.getElementById("todosSection").style.display = s.show.todos ? "block" : "none";
+    if (s.show.todos) renderTodos();
+
+    document.getElementById("teamSection").style.display = s.show.team ? "block" : "none";
+    if (s.show.team) renderTeam();
+
+    document.querySelectorAll(".pulse").forEach(function(el){ el.classList.toggle("pulse", !!s.invite || !s.show.advice && !s.checking); });
+
+    Array.prototype.forEach.call(nav.children, function(b,idx){ b.classList.toggle("on", idx===i); });
+    document.getElementById("btnPrev").disabled = i===0;
+    document.getElementById("btnNext").disabled = i===STEPS.length-1;
+  }
+
+  var firstGetBtn = document.getElementById("btnGetAdvice");
+  if (firstGetBtn) firstGetBtn.addEventListener("click", function(){ stop(); next(); });
+  document.getElementById("btnLang").addEventListener("click", function(){ lang = lang==="ar" ? "en" : "ar"; render(); });
+
+  function go(idx){ i = Math.max(0, Math.min(STEPS.length-1, idx)); render(); }
+  function next(){ if (i < STEPS.length-1) { go(i+1); } else { stop(); } }
+  function prev(){ go(i-1); }
+  function play(){ playing = true; document.getElementById("btnPlay").textContent = "⏸ Pause";
+    timer = setInterval(function(){ if (i>=STEPS.length-1){ stop(); } else { next(); } }, 3600); }
+  function stop(){ playing = false; document.getElementById("btnPlay").textContent = "▶ Auto"; clearInterval(timer); }
+
+  document.getElementById("btnNext").addEventListener("click", function(){ stop(); next(); });
+  document.getElementById("btnPrev").addEventListener("click", function(){ stop(); prev(); });
+  document.getElementById("btnPlay").addEventListener("click", function(){ playing ? stop() : play(); });
+  document.getElementById("btnReset").addEventListener("click", function(){ stop(); todoState=[false,false]; fb=null; lang="en"; go(0); });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key==="ArrowRight"){ stop(); next(); }
+    if (e.key==="ArrowLeft"){ stop(); prev(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
