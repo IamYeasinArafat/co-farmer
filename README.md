@@ -1,6 +1,6 @@
-# Hydro Monitor: an AI farm team for small farms in Qatar
+# Co-Farmer: an autonomous IOT+AI farm assistance team for farms of all scales
 
-Hydro Monitor is a sensing and control kit for small farms, looked after by a team of AI specialists built for each farm. This repository is the **agentic part**, the MVP for the Reboot the Earth hackathon. The full design is in [`docs/Hydro Monitor_ Project Plan (2).pdf`](docs/).
+Co-Farmer is a sensing and control kit for small farms, looked after by a team of AI specialists built for each farm. This repository is the **agentic part**, the MVP for the Reboot the Earth hackathon. The full design is in [`docs/Co-Farmer_ Project Plan (2).pdf`](docs/).
 
 - **Sensors in every bed** report to a master node (ESP32). The master logs every reading and switches the pumps to keep conditions inside safe ranges, even when the laptop is off.
 - **Every 6 hours**, a **CrewAI agent network** on the laptop reads the farm's data and the Open-Meteo forecast. It sets new ranges for the master, and tells the farmer, in Arabic or English, what's happening and what to do.
@@ -87,7 +87,7 @@ There are two demo farms; pick one with the **🏡 Farm** selector in the sideba
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **How the code works:** modules, one agent run step by step, onboarding, crop advice, **every table in `hydro.db`**, config files, how to extend |
 | [MASTER_API.md](MASTER_API.md) | The firmware: the HTTP API, the CSV log format, the ranges file, an Arduino outline |
 | [docs/flowchart.html](docs/flowchart.html) | Diagrams of the two parts, one agent run and onboarding (open it in a browser) |
-| `docs/Hydro Monitor_ Project Plan (2).pdf` | The team's plan this code follows |
+| `docs/Co-Farmer_ Project Plan (2).pdf` | The team's plan this code follows |
 
 ## Honest limits
 
