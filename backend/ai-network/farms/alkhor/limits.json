@@ -1,0 +1,22 @@
+{
+  "farm_id": "alkhor",
+  "crop": "purple amaranth",
+  "hard": {
+    "soil_moisture": [25, 55],
+    "temp_air": [15, 32],
+    "humidity": [35, 85],
+    "level": [15, 100],
+    "pump_seconds": [10, 300]
+  },
+  "start": {
+    "F1": {"soil_moisture": [30, 45], "temp_air": [24, 32], "humidity": [40, 80], "level": [20, 100], "pump_seconds": 120},
+    "F2": {"soil_moisture": [30, 45], "temp_air": [24, 32], "humidity": [40, 80], "pump_seconds": 120}
+  },
+  "notes": {
+    "soil_moisture": "hard limit 25-55 %",
+    "temp_air": "alert above 32 °C",
+    "level": "block the pump below 15 %, alert below 20 %",
+    "pump_seconds": "at most 300 s per command"
+  },
+  "_source": "Hydro Monitor plan 6.2 hard limits and starting values (illustrative). Humidity is not in the plan's table: 35-85 % comes from the crop file."
+}

@@ -1,0 +1,41 @@
+{
+  "_about": "Where each model named in the network spec actually runs. 'map' reroutes a spec model; 'fallback' serves any model that is neither routed nor installed. OpenRouter retries the configured open-weight alternatives on 429/5xx responses. 'onboarding' is the model the onboarding assistant uses. The first route is the default.",
+  "openrouter": {
+    "description": "Open-weight models on OpenRouter with automatic fallback on rate limits. Needs OPENROUTER_API_KEY and internet.",
+    "fallback": "openrouter:qwen/qwen3.8-27b:free",
+    "map": {
+      "llama3.2:3b": "openrouter:qwen/qwen3.8-27b:free",
+      "gemma2:2b": "openrouter:nvidia/nemotron-3-super-120b-a12b:free",
+      "phi3.5": "openrouter:dots-studio/dots-3-note-preview:free",
+      "qwen2.5:3b": "openrouter:qwen/qwen3.8-27b:free",
+      "qwen2.5:7b": "openrouter:qwen/qwen3.8-27b:free"
+    },
+    "onboarding": "openrouter:qwen/qwen3.8-27b:free"
+  },
+  "hybrid": {
+    "description": "Departments run locally; only the Farm Director uses a large free cloud model.",
+    "fallback": "qwen2.5:3b",
+    "map": {
+      "qwen2.5:7b": "openrouter:google/gemma-4-31b-it:free"
+    },
+    "onboarding": "openrouter:google/gemma-4-31b-it:free"
+  },
+  "local": {
+    "description": "Everything on this laptop through Ollama. No internet needed.",
+    "fallback": "qwen2.5:3b",
+    "map": {},
+    "onboarding": "qwen2.5:7b"
+  },
+  "local-api-test": {
+    "description": "Tests the cloud code path against local Ollama's OpenAI-compatible endpoint.",
+    "fallback": "ollama-api:qwen2.5:3b",
+    "map": {
+      "llama3.2:3b": "ollama-api:qwen2.5:3b",
+      "gemma2:2b": "ollama-api:qwen2.5:3b",
+      "phi3.5": "ollama-api:qwen2.5:3b",
+      "qwen2.5:3b": "ollama-api:qwen2.5:3b",
+      "qwen2.5:7b": "ollama-api:qwen2.5:3b"
+    },
+    "onboarding": "ollama-api:qwen2.5:3b"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "farm_id": "shahaniya",
+  "name": "Al Shahaniya new farm",
+  "location": "Al Shahaniya, Qatar",
+  "latitude": 25.371,
+  "longitude": 51.223,
+  "utc_offset": "+03:00",
+  "crop": "purple amaranth",
+  "stage": "land",
+  "land_m2": 10000,
+  "budget_qr": 200000,
+  "fields": [
+    {
+      "field_id": "F1",
+      "size_m": [
+        41.8,
+        41.9
+      ],
+      "type": "soil bed, open air",
+      "crop": "purple amaranth",
+      "planted": null,
+      "zone": "Z1",
+      "status": "planned"
+    },
+    {
+      "field_id": "F2",
+      "size_m": [
+        41.8,
+        41.9
+      ],
+      "type": "soil bed, open air",
+      "crop": "parsley",
+      "planted": null,
+      "zone": "Z1",
+      "status": "planned"
+    },
+    {
+      "field_id": "F3",
+      "size_m": [
+        41.8,
+        41.9
+      ],
+      "type": "soil bed, open air",
+      "crop": "radish",
+      "planted": null,
+      "zone": "Z1",
+      "status": "planned"
+    },
+    {
+      "field_id": "F4",
+      "size_m": [
+        41.8,
+        41.9
+      ],
+      "type": "soil bed, open air",
+      "crop": "purple amaranth",
+      "planted": null,
+      "zone": "Z1",
+      "status": "planned"
+    }
+  ],
+  "water": "well",
+  "fertilizer": null,
+  "power": null,
+  "internet": "mobile data",
+  "problems": [
+    "the summer heat",
+    "finding buyers"
+  ],
+  "goal": "income from selling at the market"
+}

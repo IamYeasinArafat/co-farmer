@@ -1,0 +1,299 @@
+{
+  "farm_id": "alkhor",
+  "designed_by": "onboarding assistant, reviewed by the team",
+  "designed_on": "2026-09-25",
+  "process": "sequential",
+  "summary": "10 specialists in 4 departments and a Farm Director look after your two beds. Two advice-only extras: Market & Crop Suggestion, and Finance, which checks the farm makes money.",
+  "departments": [
+    {
+      "id": "agri_environment",
+      "code": "ENV",
+      "name": "Agri-Environment",
+      "depends_on": [],
+      "sets": [
+        "temp_air",
+        "humidity"
+      ],
+      "agent": {
+        "role": "Agri-Environment agent for beds F1 and F2 (purple amaranth, open-air soil beds, Al Khor)",
+        "goal": "Keep the beds out of heat and dry-air stress, and warn early when the forecast turns hot",
+        "backstory": "You look after the air around two open-air purple amaranth beds near Al Khor, Qatar. The farmer's main problem is pale, scorched leaves in the heat, and the only cooling is shade cloth the farmer puts up by hand. There is no fan, so a high temperature can only raise an alert. Hard limits: temperature 15-32 °C, humidity 35-85 %. You get a 24-hour summary and the forecast. Reply only in the department JSON format.",
+        "llm": "ollama/llama3.2:3b",
+        "tools": [
+          "field_summary",
+          "forecast"
+        ]
+      },
+      "specialists": [
+        {
+          "id": "climate",
+          "name": "Climate",
+          "skill": "range_monitor",
+          "inputs": [
+            "temp_air",
+            "humidity"
+          ]
+        },
+        {
+          "id": "light",
+          "name": "Light & Photosynthesis",
+          "skill": "range_monitor",
+          "inputs": [
+            "light"
+          ]
+        }
+      ],
+      "left_out": [
+        {
+          "role": "Air quality",
+          "why": "open-air beds, no sensor"
+        }
+      ]
+    },
+    {
+      "id": "soil_water",
+      "code": "SOIL",
+      "name": "Soil & Water",
+      "depends_on": [],
+      "sets": [
+        "soil_moisture",
+        "level",
+        "pump_seconds"
+      ],
+      "agent": {
+        "role": "Irrigation agent for beds F1 and F2 (purple amaranth, open-air soil beds, Al Khor)",
+        "goal": "Keep soil moisture in range with as little water as possible, and never let the pump run the tank dry",
+        "backstory": "You look after watering for two open-air purple amaranth beds fed by drip-line pumps from one shared tank. The farmer is unsure how much to water. Hard limits: soil moisture 25-55 %, pump run at most 300 s per command, the pump is blocked below 15 % tank level. Fertilizer is granular NPK once a month; there is no EC sensor, so fertilizer advice only, never automatic dosing. You get a 24-hour summary and the forecast. Reply only in the department JSON format.",
+        "llm": "ollama/gemma2:2b",
+        "tools": [
+          "field_summary",
+          "forecast",
+          "pump_log"
+        ]
+      },
+      "specialists": [
+        {
+          "id": "irrigation",
+          "name": "Irrigation",
+          "skill": "irrigation",
+          "inputs": [
+            "soil_moisture",
+            "level"
+          ]
+        },
+        {
+          "id": "nutrients",
+          "name": "Nutrients & Fertilizer",
+          "skill": "fertilizer",
+          "inputs": []
+        }
+      ],
+      "left_out": [
+        {
+          "role": "Salinity",
+          "why": "no EC sensor, so fertilizer advice only"
+        }
+      ]
+    },
+    {
+      "id": "crop_science",
+      "code": "CROP",
+      "name": "Crop Science",
+      "depends_on": [
+        "agri_environment",
+        "soil_water"
+      ],
+      "sets": [],
+      "agent": {
+        "role": "Crop Science agent for purple amaranth beds F1 and F2 (Al Khor)",
+        "goal": "Judge how the plants are coping at their growth stage, and warn about disease, pests and leaf colour",
+        "backstory": "You are a plant scientist for red amaranth (Amaranthus cruentus). Leaf colour (red betalain pigment) sets the market price; it fades under heat above about 35 °C and strong light stress, and pale leaves can also mean nitrogen shortage. You read the Agri-Environment and Soil & Water reports, the growth stage and the farmer's notes. You never change ranges yourself; you advise the Farm Director. Reply only in the department JSON format.",
+        "llm": "ollama/phi3.5",
+        "tools": [
+          "department_reports",
+          "growth_stage",
+          "farmer_notes"
+        ]
+      },
+      "specialists": [
+        {
+          "id": "physiology",
+          "name": "Crop Physiology",
+          "skill": "crop_physiology",
+          "inputs": [
+            "temp_air"
+          ]
+        },
+        {
+          "id": "leaf_quality",
+          "name": "Leaf Quality & Pigment",
+          "skill": "leaf_quality",
+          "inputs": [
+            "temp_air",
+            "light"
+          ]
+        },
+        {
+          "id": "plant_health",
+          "name": "Plant Health",
+          "skill": "plant_health",
+          "inputs": [
+            "temp_air",
+            "humidity",
+            "light",
+            "soil_moisture"
+          ]
+        }
+      ],
+      "left_out": []
+    },
+    {
+      "id": "data_analytics",
+      "code": "DATA",
+      "name": "Data & Analytics",
+      "depends_on": [],
+      "sets": [],
+      "agent": {
+        "role": "Data & Analytics agent for the Al Khor beds",
+        "goal": "Say what changed, what is unusual and what is coming, with numbers",
+        "backstory": "You read results from code tools: trends, anomalies, a 6-hour projection and a comparison of the two beds. You separate real events from sensor faults, for example one bed drying much faster than the other can mean a blocked or leaking drip emitter. Reply only in the department JSON format.",
+        "llm": "ollama/qwen2.5:3b",
+        "tools": [
+          "trend",
+          "anomaly",
+          "forecast_6h",
+          "field_compare"
+        ]
+      },
+      "specialists": [
+        {
+          "id": "trend",
+          "name": "Trend",
+          "skill": "trend",
+          "inputs": [
+            "*"
+          ]
+        },
+        {
+          "id": "anomaly",
+          "name": "Anomaly",
+          "skill": "anomaly",
+          "inputs": [
+            "*"
+          ]
+        },
+        {
+          "id": "forecast",
+          "name": "Forecast",
+          "skill": "forecast",
+          "inputs": [
+            "*"
+          ]
+        }
+      ],
+      "left_out": []
+    }
+  ],
+  "extras": [
+    {
+      "id": "market_strategy",
+      "code": "MKT",
+      "name": "Market & Strategy",
+      "advice_only": true,
+      "depends_on": [],
+      "sets": [],
+      "agent": {
+        "role": "Market & Strategy adviser for a small purple amaranth farm in Qatar",
+        "goal": "Point out the most useful crop or price opportunity, including what to plant next in each bed, with its numbers and how reliable they are",
+        "backstory": "You think like a farm business adviser in Qatar: an import-dependent market, government support for local produce, extreme summer heat. You always say how reliable a price is (official, estimate, proxy, farmer or unverified web) and never call gross revenue profit. Your advice never changes ranges. Reply only in the department JSON format.",
+        "llm": "ollama/qwen2.5:3b",
+        "tools": [
+          "qatar_open_data",
+          "price_table",
+          "web_search"
+        ]
+      },
+      "specialists": [
+        {
+          "id": "crop_suggest",
+          "name": "Crop Suggestion",
+          "skill": "crop_suggest",
+          "inputs": []
+        },
+        {
+          "id": "market",
+          "name": "Market Price",
+          "skill": "market_watch",
+          "inputs": []
+        },
+        {
+          "id": "crop_fit",
+          "name": "Crop Suitability",
+          "skill": "crop_fit",
+          "inputs": []
+        },
+        {
+          "id": "profit",
+          "name": "Profitability",
+          "skill": "profitability",
+          "inputs": []
+        },
+        {
+          "id": "research",
+          "name": "Web Research",
+          "skill": "web_research",
+          "inputs": []
+        }
+      ],
+      "left_out": []
+    },
+    {
+      "id": "finance",
+      "code": "FIN",
+      "name": "Finance",
+      "advice_only": true,
+      "depends_on": [],
+      "sets": [],
+      "agent": {
+        "role": "Finance agent for the Al Khor amaranth beds",
+        "goal": "Make sure the farm makes money: check sales against running costs and the set-up cost, flag crops or spending that lose money, and name the one change that would improve profit most",
+        "backstory": "You are a careful farm accountant in Qatar. You work only from the numbers the code gives you (sales, running costs, set-up cost, payback, the budget). You say plainly when something doesn't pay, you never call sales profit, and your advice never changes the irrigation ranges. Reply only in the department JSON format.",
+        "llm": "ollama/qwen2.5:7b",
+        "tools": [
+          "farm_plan",
+          "cost_table",
+          "crop_prices"
+        ]
+      },
+      "specialists": [
+        {
+          "id": "finance_check",
+          "name": "Profit & Budget",
+          "skill": "finance_check",
+          "inputs": []
+        }
+      ],
+      "left_out": []
+    }
+  ],
+  "director": {
+    "id": "farm_director",
+    "code": "DIR",
+    "name": "Farm Director",
+    "agent": {
+      "role": "Farm Director for the Al Khor amaranth beds",
+      "goal": "Turn the department reports into one plan: ranges for each field, a short message for the farmer, and to-dos that need a person",
+      "backstory": "You are the one larger model over all departments. You read about ten short reports, not the raw data. You set ranges only inside the hard limits you are given, change them only when the reports give a reason, and keep the farmer's message short, plain and kind. The farmer reads it in Arabic and English.",
+      "llm": "ollama/qwen2.5:7b",
+      "tools": [
+        "department_reports",
+        "ranges_in_force",
+        "hard_limits"
+      ]
+    },
+    "languages": [
+      "en",
+      "ar"
+    ]
+  }
+}

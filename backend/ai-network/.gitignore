@@ -1,0 +1,38 @@
+# Secrets: API keys live here (copy .env.example to .env)
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local model files (the farm-qwen fine-tune is several GB)
+*.gguf
+*.safetensors
+*.bin
+
+# Logs and scratch output
+*.log
+nohup.out
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local database and caches (recreate the demo with: python seed_demo.py --reset)
+data/
+farms/*/forecast_cache.json

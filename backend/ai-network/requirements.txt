@@ -1,0 +1,6 @@
+streamlit>=1.40
+crewai>=1.0          # the agent network; needs Python 3.10-3.13
+fastapi>=0.110       # server.py: POST /log, GET /ranges for the master node
+uvicorn>=0.29
+ollama>=0.3
+pandas>=2.0

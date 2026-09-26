@@ -1,0 +1,213 @@
+{
+  "fetched_at": "2026-09-25T15:08:32",
+  "source": "Qatar Open Data portal (data.gov.qa), Planning and Statistics Authority",
+  "retail_prices": {
+    "Red Apple / USA": {
+      "qr_per_kg": 7.0,
+      "year": 2023
+    },
+    "Orange / Lebanon": {
+      "qr_per_kg": 4.0,
+      "year": 2023
+    },
+    "Parsley / Qatar": {
+      "qr_per_kg": 22.5,
+      "year": 2023
+    },
+    "Red onion /India": {
+      "qr_per_kg": 3.0,
+      "year": 2023
+    },
+    "Fresh potato /  Lebanon": {
+      "qr_per_kg": 3.0,
+      "year": 2023
+    },
+    "Garlic / China": {
+      "qr_per_kg": 6.0,
+      "year": 2023
+    },
+    "Tomato / Qatar": {
+      "qr_per_kg": 3.0,
+      "year": 2023
+    },
+    "Lemon / South Africa": {
+      "qr_per_kg": 5.0,
+      "year": 2023
+    },
+    "Hot pepper / India": {
+      "qr_per_kg": 7.0,
+      "year": 2023
+    },
+    "Cucumber / Saudi Arabia": {
+      "qr_per_kg": 3.53,
+      "year": 2017
+    },
+    "Hot pepper / Saudi Arabia": {
+      "qr_per_kg": 4.78,
+      "year": 2017
+    }
+  },
+  "farmgate_vegetables": {
+    "qr_per_kg": 2.68,
+    "year": 2023
+  },
+  "self_sufficiency": {
+    "year": 2023,
+    "ratios": {
+      "Wheat and Wheat Flour": 0.0,
+      "Other Edible Cereals": 0.029,
+      "Fruits": 0.006,
+      "Red Meat": 0.176,
+      "Fish": 0.355,
+      "Wheat Products": 0.017,
+      "Barley": 0.001,
+      "Vegetables": 0.197,
+      "Bran": 0.351,
+      "Other Forage Cereals": 0.0,
+      "Poultry Meat": 0.157,
+      "Milk and Dairy Products": 0.754,
+      "Eggs": 0.255
+    }
+  },
+  "yields_open_field_t_ha": {
+    "year": 2025,
+    "crops": {
+      "Wheat": 3.0,
+      "Tomatoes": 50.7,
+      "Pepper (Sweet)": 30.38,
+      "Zucchini": 22.59,
+      "Cauliflower": 25.28,
+      "Turnips": 22.03,
+      "Pumpkin": 29.52,
+      "Beans": 12.65,
+      "Watermelon": 17.17,
+      "Other vegetables": 13.97,
+      "Date Palm": 9.45,
+      "FIG": 1.43,
+      "Maize": 20.54,
+      "Other cereals": 1.42,
+      "Eggplant": 34.34,
+      "Okra": 8.61,
+      "Spinach": 21.76,
+      "Mallow": 17.09,
+      "Parsley": 16.47,
+      "Carrots": 23.86,
+      "Radish": 26.97,
+      "Potato": 30.97,
+      "Melon": 25.06,
+      "Strawberry": 3.0,
+      "MULBERRY": 1.1,
+      "Pomegranate": 1.1,
+      "Almonds": 2.02,
+      "Alfalfa": 79.53,
+      "Rhodes": 75.57,
+      "Barley": 7.85,
+      "Cabbage": 30.91,
+      "Pepper (Chilly)": 28.38,
+      "Snake cucumber": 24.04,
+      "Chard": 21.93,
+      "Lettuce": 22.62,
+      "Beet": 25.01,
+      "Ding arkabi": 23.49,
+      "Dry onion": 27.09,
+      "Bean": 13.28,
+      "Cowpea": 11.93,
+      "KANAR": 1.83,
+      "Citrus": 1.48,
+      "Guava": 0.87,
+      "Grapes": 9.88,
+      "Other fruit": 3.84,
+      "Other fodders": 23.18
+    }
+  },
+  "yields_greenhouse_t_ha": {
+    "year": 2025,
+    "crops": {
+      "Cucumber": 64.9,
+      "Sweet Pepper": 49.2,
+      "Eggplant": 64.7,
+      "Squash": 44.3,
+      "other Vegetables": 27.2,
+      "Tomatoes": 96.5,
+      "Fasolya": 27.1,
+      "Melon": 21.3
+    }
+  },
+  "climate_normals": {
+    "years": "2020-2024",
+    "months": {
+      "Jan": {
+        "tmax": 23.2,
+        "tmin": 17.2,
+        "rhmax": 83.5,
+        "rhmin": 50.0
+      },
+      "Feb": {
+        "tmax": 24.6,
+        "tmin": 17.6,
+        "rhmax": 78.0,
+        "rhmin": 39.0
+      },
+      "Mar": {
+        "tmax": 27.4,
+        "tmin": 20.1,
+        "rhmax": 74.0,
+        "rhmin": 33.0
+      },
+      "Apr": {
+        "tmax": 31.9,
+        "tmin": 23.3,
+        "rhmax": 70.5,
+        "rhmin": 25.0
+      },
+      "May": {
+        "tmax": 38.4,
+        "tmin": 28.7,
+        "rhmax": 58.0,
+        "rhmin": 16.4
+      },
+      "Jun": {
+        "tmax": 41.9,
+        "tmin": 31.9,
+        "rhmax": 59.5,
+        "rhmin": 17.5
+      },
+      "Jul": {
+        "tmax": 42.7,
+        "tmin": 33.5,
+        "rhmax": 60.5,
+        "rhmin": 20.0
+      },
+      "Aug": {
+        "tmax": 40.4,
+        "tmin": 33.4,
+        "rhmax": 72.5,
+        "rhmin": 34.5
+      },
+      "Sep": {
+        "tmax": 39.2,
+        "tmin": 31.3,
+        "rhmax": 73.5,
+        "rhmin": 52.0
+      },
+      "Oct": {
+        "tmax": 35.5,
+        "tmin": 28.2,
+        "rhmax": 77.0,
+        "rhmin": 38.0
+      },
+      "Nov": {
+        "tmax": 30.3,
+        "tmin": 23.8,
+        "rhmax": 77.5,
+        "rhmin": 44.0
+      },
+      "Dec": {
+        "tmax": 25.4,
+        "tmin": 18.6,
+        "rhmax": 80.0,
+        "rhmin": 42.0
+      }
+    }
+  }
+}

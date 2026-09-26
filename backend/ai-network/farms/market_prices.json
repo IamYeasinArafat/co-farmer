@@ -1,0 +1,27 @@
+{
+  "_about": "Prices the Profitability agent uses, in QAR per kg. 'farmgate' is what a grower receives; 'retail' is the shop price. Confidence: official (Qatar Open Data), estimate (third-party modelled data), proxy (borrowed from a similar crop or the vegetable average), farmer (entered by you - the most trusted for your farm). Replace any row with your own buyer's price and set confidence to 'farmer'. USD converted at the fixed 3.64 QAR/USD peg.",
+  "updated": "2026-09-25",
+  "currency": "QAR",
+  "vegetable_average_farmgate": {"qr_per_kg": 2.68, "confidence": "official", "date": "2023",
+    "source": "Qatar Open Data: value of vegetable production / quantity (302.4 M QR / 112,800 t)"},
+  "crops": {
+    "purple_amaranth": {"farmgate": 3.6, "retail": null, "confidence": "proxy", "date": "2023",
+      "source": "No Qatar price series for amaranth. Priced like spinach (farm-gate estimate). Enter your buyer's price."},
+    "lettuce": {"farmgate": 3.49, "retail": null, "confidence": "estimate", "date": "2023",
+      "source": "Selina Wamucii Qatar farm-gate estimate, USD 0.96/kg"},
+    "spinach": {"farmgate": 3.6, "retail": null, "confidence": "estimate", "date": "2023",
+      "source": "Selina Wamucii Qatar farm-gate estimate, USD 0.99/kg. Imported packaged spinach retails far higher (QAR 9.50 per 125 g, 2026 supermarket listing)."},
+    "parsley": {"farmgate": null, "retail": 22.5, "confidence": "official", "date": "2023",
+      "source": "Qatar Open Data consumer prices: Parsley / Qatar, QAR 4.50 per 200 g. Farm-gate not published; 2026 supermarket bunch price QAR 5.75."},
+    "swiss_chard": {"farmgate": 2.68, "retail": null, "confidence": "proxy", "date": "2023",
+      "source": "Qatar vegetable average farm-gate value (official)"},
+    "tomato": {"farmgate": 2.0, "retail": 3.0, "confidence": "official", "date": "2023",
+      "source": "Retail: Qatar Open Data, Tomato / Qatar QAR 3.00/kg. Farm-gate: Selina Wamucii estimate USD 0.55/kg."},
+    "cucumber": {"farmgate": 2.8, "retail": 3.53, "confidence": "estimate", "date": "2017-2023",
+      "source": "Retail: Qatar Open Data 2017 (Cucumber / Saudi Arabia). Farm-gate: Selina Wamucii estimate USD 0.77/kg."},
+    "sweet_pepper": {"farmgate": 2.68, "retail": null, "confidence": "proxy", "date": "2023",
+      "source": "Qatar vegetable average farm-gate value (official)"}
+  },
+  "retail_to_farmgate_share": 0.45,
+  "_retail_share_note": "When only a retail price exists, the grower is assumed to receive 45% of it. This is an assumption, so replace it with your own figure."
+}

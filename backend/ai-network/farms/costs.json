@@ -1,0 +1,35 @@
+{
+  "_about": "Cost assumptions for farm design and finance (farm_plan.py), in Qatari riyals (QR), 2026. They are rough planning estimates for a small farm in Qatar, not quotes: replace them with your suppliers' prices. Every figure the app shows from this file is labelled as an estimate.",
+  "capex": {
+    "greenhouse_cooled_m2": {"qr": 180, "what": "fan-and-pad cooled greenhouse, per m² of growing area"},
+    "shade_house_m2": {"qr": 45, "what": "shade-net house (40 % net on steel frame), per m²"},
+    "drip_m2": {"qr": 8, "what": "drip lines, filters and fittings, per m²"},
+    "soil_prep_m2": {"qr": 6, "what": "bed preparation, compost and sand mix, per m²"},
+    "tank_m3": {"qr": 400, "what": "water tank, per m³ of storage"},
+    "well": {"qr": 25000, "what": "drilling and equipping a well (only when there is no water on the land)"},
+    "shed": {"qr": 15000, "what": "prefab shed / pump house (about 20 m²) for tools, the master node and packing"},
+    "solar_kw": {"qr": 5000, "what": "solar power with battery, per kW (only when there is no mains power)"},
+    "fence_m": {"qr": 40, "what": "fence and windbreak, per metre of boundary"},
+    "pump": {"qr": 800, "what": "drip-line pump, one per zone"},
+    "sensor_set": {"qr": 250, "what": "Hydro Monitor sensor set (Nano, radio, DHT11, soil, light)"},
+    "actuator_set": {"qr": 200, "what": "Hydro Monitor actuator set (Nano, radio, relays)"},
+    "master": {"qr": 300, "what": "Hydro Monitor master node (ESP32, radio, SD card)"},
+    "hydroponic_m2": {"qr": 220, "what": "NFT/vertical hydroponic troughs, pumps, nutrient dosing, per m²"}
+  },
+  "opex": {
+    "seed_m2_cycle": {"qr": 0.6, "what": "seeds or seedlings, per m² per crop cycle"},
+    "fertilizer_m2_year": {"qr": 1.5, "what": "fertilizer and compost top-up, per m² per year"},
+    "water_m3": {"qr": 4.4, "what": "water, per m³ (tanker or municipal)"},
+    "electricity_kwh": {"qr": 0.15, "what": "electricity, per kWh"},
+    "cooling_kwh_m2_year": {"qr": 60, "what": "greenhouse cooling energy, kWh per m² per year"},
+    "worker_month": {"qr": 2000, "what": "one farm worker, per month"},
+    "m2_per_worker": {"qr": 2500, "what": "growing area one worker can look after (m²)"},
+    "packing_share": {"qr": 0.10, "what": "packing and transport, share of sales"},
+    "maintenance_share": {"qr": 0.03, "what": "maintenance per year, share of set-up cost"},
+    "nutrients_m2_cycle": {"qr": 1.2, "what": "hydroponic nutrient solution, per m² per crop cycle (replaces soil fertilizer)"}
+  },
+  "water_l_m2_day": {"low": 4, "medium": 6, "high": 8, "_what": "open-field irrigation in the growing season, litres per m² per day"},
+  "cover_water_factor": {"open": 1.0, "shade": 0.8, "greenhouse": 0.6},
+  "cover_cooling_c": {"open": 0.0, "shade": 3.0, "greenhouse": 6.0},
+  "usable_share": 0.7
+}

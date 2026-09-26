@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hydro Monitor Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f4f7f3;
+    --surface: #ffffff;
+    --ink: #16211b;
+    --muted: #5d6b63;
+    --line: #c9d4cc;
+    --leaf: #2f7a4c;
+    --leaf-soft: #e3f0e7;
+    --amaranth: #a3195b;
+    --amaranth-soft: #f8e4ee;
+    --on-amaranth: #ffffff;
+    --dormant: #9aa69f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0f1512; --surface: #17201b; --ink: #e2eae5; --muted: #95a59c; --line: #2f3d35;
+      --leaf: #6cc08e; --leaf-soft: #1a2c21; --amaranth: #e0609a; --amaranth-soft: #35182a;
+      --on-amaranth: #1a0710; --dormant: #5f6d65;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0f1512; --surface: #17201b; --ink: #e2eae5; --muted: #95a59c; --line: #2f3d35;
+    --leaf: #6cc08e; --leaf-soft: #1a2c21; --amaranth: #e0609a; --amaranth-soft: #35182a;
+    --on-amaranth: #1a0710; --dormant: #5f6d65;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 15px/1.6 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 56px; display: grid; gap: 40px; }
+  header { display: grid; gap: 10px; max-width: 70ch; }
+  .eyebrow { font: 500 12px/1 "IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--leaf); }
+  h1 { font: 700 clamp(30px, 4.4vw, 46px)/1.05 "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  h2 { font: 600 22px/1.2 "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif; margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  .lede { color: var(--muted); font-size: 16px; }
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-size: .88em; }
+
+  section { display: grid; gap: 14px; }
+  .section-head { display: grid; gap: 6px; max-width: 72ch; }
+  .section-head p { color: var(--muted); }
+
+  figure { margin: 0; display: grid; gap: 10px; }
+  .canvas { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; padding: 12px; }
+  .canvas svg { display: block; width: 100%; min-width: 860px; height: auto; color: var(--ink); }
+  figcaption { color: var(--muted); font-size: 14px; max-width: 80ch; }
+
+  /* SVG classes (themed through the same tokens) */
+  .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+  .hw { fill: var(--leaf-soft); stroke: var(--leaf); stroke-width: 1.4; }
+  .zone { fill: none; stroke: var(--line); stroke-width: 1.2; stroke-dasharray: 5 4; }
+  .ai { fill: var(--amaranth); stroke: var(--amaranth); }
+  .ai-soft { fill: var(--amaranth-soft); stroke: var(--amaranth); stroke-width: 1.3; }
+  .ai-dash { fill: var(--surface); stroke: var(--amaranth); stroke-width: 1.3; stroke-dasharray: 5 4; }
+  .pill { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .sleep { fill: none; stroke: var(--dormant); stroke-width: 1; stroke-dasharray: 4 3; }
+  .wire { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+  .wire-ai { fill: none; stroke: var(--amaranth); stroke-width: 1.5; }
+  .wire-dash { fill: none; stroke: var(--muted); stroke-width: 1.3; stroke-dasharray: 5 4; }
+  .t { fill: var(--ink); font: 600 13px "IBM Plex Sans", system-ui, sans-serif; }
+  .s { fill: var(--muted); font: 400 11.5px "IBM Plex Sans", system-ui, sans-serif; }
+  .m { fill: var(--muted); font: 400 11px "IBM Plex Mono", ui-monospace, monospace; }
+  .t-on { fill: var(--on-amaranth); font: 600 13px "IBM Plex Sans", system-ui, sans-serif; }
+  .s-on { fill: var(--on-amaranth); font: 400 11.5px "IBM Plex Sans", system-ui, sans-serif; opacity: .9; }
+  .t-ai { fill: var(--amaranth); font: 600 12px "IBM Plex Sans", system-ui, sans-serif; }
+  .t-sleep { fill: var(--dormant); font: 400 12px "IBM Plex Sans", system-ui, sans-serif; }
+  .lane { fill: var(--leaf); font: 500 11px "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .06em; }
+  .head { fill: var(--ink); font: 600 11.5px "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .03em; }
+  .arrow { fill: var(--muted); }
+  .arrow-ai { fill: var(--amaranth); }
+
+  .cadence { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .tick { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 6px; align-content: start; }
+  .tick .when { font: 600 26px/1 "Bricolage Grotesque", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  .tick .who { font: 500 12px/1.2 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .tick.ai-tick .when { color: var(--amaranth); }
+  .tick p { color: var(--muted); font-size: 14px; }
+
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font: 500 12px "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { white-space: nowrap; }
+  td.size { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+
+  .rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .rule { border-left: 3px solid var(--leaf); padding: 4px 0 4px 14px; display: grid; gap: 4px; }
+  .rule.ai-rule { border-left-color: var(--amaranth); }
+  .rule strong { font-weight: 600; }
+  .rule p { color: var(--muted); font-size: 14px; }
+
+  .zone-ai { fill: none; stroke: var(--amaranth); stroke-width: 1.2; stroke-dasharray: 5 4; }
+  .cadence { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .roster td:nth-child(2) { white-space: normal; }
+  .roster .dept { font-weight: 600; }
+  .roster .tag { font: 500 11px "IBM Plex Mono", ui-monospace, monospace; color: var(--amaranth); }
+  .roster .off { color: var(--dormant); }
+
+  @media (max-width: 900px) {
+    .cadence { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 720px) {
+    .cadence, .rules { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hydro Monitor · Reboot the Earth · Doha · MVP</div>
+    <h1>How Hydro Monitor works</h1>
+    <p class="lede">Sensors in each bed report to a master node, which logs every reading and switches the pumps to keep conditions inside safe ranges. Every 6 hours, a CrewAI agent network on the laptop reads the farm's data and the forecast. It sets new ranges for the master, and writes advice for the farmer in Arabic and English. Before any of that, an onboarding assistant designs the hardware and the network for the farm.</p>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <h2>The two parts</h2>
+      <p>Green is the IoT part in the fields; it runs the farm on its own. Magenta is the agentic part on the laptop; it sets the ranges the master enforces. Two small formats connect them: log rows going up, ranges coming down.</p>
+    </div>
+    <figure>
+      <div class="canvas">
+        <svg viewBox="0 0 1200 400" role="img" aria-label="Sensor sets S1 and S2 radio readings every 10 seconds to the master node, which switches the pumps on actuator sets A1 and A2 and logs their on and off events. The master posts log rows to server.py on the laptop, which stores them in SQLite, and downloads the latest ranges with GET /ranges. The CrewAI agent network reads SQLite every 6 hours, a code check clamps its ranges to the hard limits and saves a new version, and the dashboard shows the message and to-dos. The onboarding assistant writes the farm files once per farm.">
+          <defs>
+            <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arrow"/></marker>
+            <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arrow-ai"/></marker>
+          </defs>
+
+          <rect x="16" y="20" width="520" height="370" rx="10" class="zone"/>
+          <text x="32" y="44" class="lane">IOT PART · IN THE FIELDS</text>
+          <rect x="560" y="20" width="624" height="370" rx="10" class="zone-ai"/>
+          <text x="576" y="44" class="lane">AGENTIC PART · FARM COMPUTER (LAPTOP)</text>
+
+          <!-- IoT -->
+          <rect x="36" y="64" width="160" height="56" rx="8" class="hw"/>
+          <text x="48" y="86" class="t">Sensor set S1 · F1</text>
+          <text x="48" y="106" class="s">dht11 · soil · light · level</text>
+          <rect x="36" y="140" width="160" height="56" rx="8" class="hw"/>
+          <text x="48" y="162" class="t">Sensor set S2 · F2</text>
+          <text x="48" y="182" class="s">dht11 · soil · light</text>
+          <rect x="36" y="250" width="160" height="56" rx="8" class="hw"/>
+          <text x="48" y="272" class="t">Actuator set A1 · F1</text>
+          <text x="48" y="292" class="s">relay1: drip-line pump</text>
+          <rect x="36" y="322" width="160" height="56" rx="8" class="hw"/>
+          <text x="48" y="344" class="t">Actuator set A2 · F2</text>
+          <text x="48" y="364" class="s">relay1: drip-line pump</text>
+
+          <rect x="300" y="64" width="190" height="314" rx="8" class="hw"/>
+          <text x="395" y="92" text-anchor="middle" class="t">Master node M1</text>
+          <text x="395" y="110" text-anchor="middle" class="s">ESP32 · nRF24 · SD card</text>
+          <text x="395" y="196" text-anchor="middle" class="s">stamps the time, logs to SD</text>
+          <text x="395" y="214" text-anchor="middle" class="s">checks every reading</text>
+          <text x="395" y="232" text-anchor="middle" class="s">against the ranges</text>
+          <text x="395" y="250" text-anchor="middle" class="s">keeps the last ranges</text>
+          <text x="395" y="268" text-anchor="middle" class="s">if the laptop is down</text>
+
+          <line x1="196" y1="92" x2="298" y2="92" class="wire" marker-end="url(#a)"/>
+          <text x="247" y="84" text-anchor="middle" class="m">radio · 10 s</text>
+          <line x1="196" y1="168" x2="298" y2="168" class="wire" marker-end="url(#a)"/>
+          <line x1="300" y1="274" x2="198" y2="274" class="wire" marker-end="url(#a)"/>
+          <text x="247" y="266" text-anchor="middle" class="m">pump 120 s</text>
+          <line x1="196" y1="296" x2="298" y2="296" class="wire-dash" marker-end="url(#a)"/>
+          <text x="247" y="312" text-anchor="middle" class="m">on/off log</text>
+          <line x1="300" y1="350" x2="198" y2="350" class="wire" marker-end="url(#a)"/>
+
+          <!-- farm computer -->
+          <rect x="590" y="64" width="180" height="64" rx="8" class="box"/>
+          <text x="680" y="90" text-anchor="middle" class="t">server.py (FastAPI)</text>
+          <text x="680" y="110" text-anchor="middle" class="m">POST /log · GET /ranges</text>
+          <rect x="590" y="176" width="180" height="64" rx="8" class="box"/>
+          <text x="680" y="202" text-anchor="middle" class="t">SQLite</text>
+          <text x="680" y="222" text-anchor="middle" class="s">log rows · plan versions</text>
+          <rect x="590" y="300" width="180" height="64" rx="8" class="ai-dash"/>
+          <text x="680" y="326" text-anchor="middle" class="t-ai">Onboarding assistant</text>
+          <text x="680" y="346" text-anchor="middle" class="s">once per farm · large model</text>
+
+          <rect x="840" y="64" width="320" height="80" rx="8" class="ai"/>
+          <text x="1000" y="96" text-anchor="middle" class="t-on">Farm agent network (CrewAI)</text>
+          <text x="1000" y="116" text-anchor="middle" class="s-on">every 6 h or Run now · small local models</text>
+          <rect x="840" y="176" width="320" height="48" rx="8" class="ai-soft"/>
+          <text x="1000" y="205" text-anchor="middle" class="t">Code check: hard limits → version N</text>
+          <rect x="840" y="268" width="320" height="96" rx="8" class="box"/>
+          <text x="1000" y="294" text-anchor="middle" class="t">Dashboard (Streamlit)</text>
+          <text x="1000" y="314" text-anchor="middle" class="s">message in Arabic and English</text>
+          <text x="1000" y="332" text-anchor="middle" class="s">to-dos with Approve / Correct</text>
+          <text x="1000" y="350" text-anchor="middle" class="s">live readings · farmer notes</text>
+
+          <line x1="490" y1="84" x2="588" y2="84" class="wire" marker-end="url(#a)"/>
+          <text x="524" y="76" text-anchor="middle" class="m">POST /log</text>
+          <line x1="588" y1="112" x2="492" y2="112" class="wire-ai" marker-end="url(#aa)"/>
+          <text x="522" y="128" text-anchor="middle" class="m">GET /ranges</text>
+          <line x1="680" y1="128" x2="680" y2="174" class="wire" marker-end="url(#a)"/>
+          <polyline points="770,196 800,196 800,104 838,104" class="wire" marker-end="url(#a)"/>
+          <text x="806" y="160" class="m">reads</text>
+          <line x1="1000" y1="144" x2="1000" y2="174" class="wire-ai" marker-end="url(#aa)"/>
+          <line x1="838" y1="214" x2="772" y2="214" class="wire-ai" marker-end="url(#aa)"/>
+          <text x="805" y="232" text-anchor="middle" class="m">save</text>
+          <polyline points="770,232 790,232 790,316 838,316" class="wire" marker-end="url(#a)"/>
+          <line x1="680" y1="300" x2="680" y2="242" class="wire-dash" marker-end="url(#a)"/>
+          <text x="688" y="276" class="m">farm files + v1</text>
+        </svg>
+      </div>
+      <figcaption>The master checks <code>GET /ranges/version</code> every 5 minutes in the demo and downloads a new ranges file only when the number changes. The agents never switch hardware: they set the ranges, the master enforces them, and each layer keeps working when the one above it fails.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>One agent run</h2>
+      <p>Code does the counting; the agents do the judging; code checks the result before the master sees it. Each department is a CrewAI agent that replies in a fixed JSON format. It gets its summary lines and its specialists' code-tool results, not the raw data.</p>
+    </div>
+    <figure>
+      <div class="canvas">
+        <svg viewBox="0 0 1200 300" role="img" aria-label="An agent run: the summariser turns 24 hours of readings and the forecast into short summaries; the specialists' code tools check them; stage 1 runs Agri-Environment and Soil and Water; stage 2 runs Crop Science, which reads a digest of stage 1, Data and Analytics, and the Market and Strategy extra; stage 3 is the Farm Director, which writes range changes, a message and to-dos, then the Arabic translation; a code check clamps the ranges to the hard limits and the plan is saved as a new version.">
+          <defs>
+            <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arrow"/></marker>
+            <marker id="bb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arrow-ai"/></marker>
+          </defs>
+          <text x="455" y="28" text-anchor="middle" class="lane">STAGE 1</text>
+          <text x="655" y="28" text-anchor="middle" class="lane">STAGE 2</text>
+          <text x="860" y="28" text-anchor="middle" class="lane">STAGE 3</text>
+
+          <rect x="16" y="110" width="150" height="80" rx="8" class="box"/>
+          <text x="91" y="138" text-anchor="middle" class="t">Summariser</text>
+          <text x="91" y="158" text-anchor="middle" class="s">code, no AI</text>
+          <text x="91" y="175" text-anchor="middle" class="s">24 h + forecast</text>
+          <rect x="190" y="110" width="150" height="80" rx="8" class="box"/>
+          <text x="265" y="138" text-anchor="middle" class="t">Code tools</text>
+          <text x="265" y="158" text-anchor="middle" class="s">10 specialists</text>
+          <text x="265" y="175" text-anchor="middle" class="s">count and check</text>
+          <line x1="166" y1="150" x2="188" y2="150" class="wire" marker-end="url(#b)"/>
+
+          <line x1="340" y1="150" x2="355" y2="150" class="wire"/>
+          <line x1="355" y1="98" x2="355" y2="178" class="wire"/>
+          <line x1="355" y1="98" x2="368" y2="98" class="wire" marker-end="url(#b)"/>
+          <line x1="355" y1="178" x2="368" y2="178" class="wire" marker-end="url(#b)"/>
+
+          <rect x="370" y="70" width="170" height="56" rx="7" class="ai-soft"/>
+          <text x="455" y="94" text-anchor="middle" class="t">Agri-Environment</text>
+          <text x="455" y="112" text-anchor="middle" class="m">llama3.2:3b</text>
+          <rect x="370" y="150" width="170" height="56" rx="7" class="ai-soft"/>
+          <text x="455" y="174" text-anchor="middle" class="t">Soil &amp; Water</text>
+          <text x="455" y="192" text-anchor="middle" class="m">gemma2:2b</text>
+
+          <rect x="570" y="40" width="170" height="56" rx="7" class="ai-soft"/>
+          <text x="655" y="64" text-anchor="middle" class="t">Crop Science</text>
+          <text x="655" y="82" text-anchor="middle" class="m">phi3.5</text>
+          <rect x="570" y="110" width="170" height="56" rx="7" class="ai-soft"/>
+          <text x="655" y="134" text-anchor="middle" class="t">Data &amp; Analytics</text>
+          <text x="655" y="152" text-anchor="middle" class="m">qwen2.5:3b</text>
+          <rect x="570" y="180" width="170" height="56" rx="7" class="ai-dash"/>
+          <text x="655" y="204" text-anchor="middle" class="t-ai">Market &amp; Strategy</text>
+          <text x="655" y="222" text-anchor="middle" class="s">extra · advice only</text>
+          <line x1="540" y1="98" x2="568" y2="72" class="wire-ai" marker-end="url(#bb)"/>
+          <line x1="540" y1="178" x2="568" y2="80" class="wire-ai" marker-end="url(#bb)"/>
+          <text x="554" y="252" text-anchor="middle" class="m">digest</text>
+
+          <polyline points="525,70 525,14 760,14 760,208" class="wire"/>
+          <line x1="740" y1="68" x2="760" y2="68" class="wire"/>
+          <line x1="740" y1="138" x2="760" y2="138" class="wire"/>
+          <line x1="740" y1="208" x2="760" y2="208" class="wire"/>
+          <line x1="760" y1="130" x2="778" y2="130" class="wire" marker-end="url(#b)"/>
+
+          <rect x="780" y="90" width="160" height="80" rx="8" class="ai"/>
+          <text x="860" y="116" text-anchor="middle" class="t-on">Farm Director</text>
+          <text x="860" y="134" text-anchor="middle" class="s-on">qwen2.5:7b</text>
+          <text x="860" y="152" text-anchor="middle" class="s-on">changes · message · to-dos</text>
+          <line x1="860" y1="170" x2="860" y2="188" class="wire-ai" marker-end="url(#bb)"/>
+          <rect x="780" y="190" width="160" height="44" rx="7" class="ai-soft"/>
+          <text x="860" y="217" text-anchor="middle" class="t">Arabic translation</text>
+
+          <line x1="940" y1="130" x2="968" y2="130" class="wire-ai" marker-end="url(#bb)"/>
+          <rect x="970" y="90" width="110" height="80" rx="8" class="box"/>
+          <text x="1025" y="118" text-anchor="middle" class="t">Code check</text>
+          <text x="1025" y="138" text-anchor="middle" class="s">clamp to</text>
+          <text x="1025" y="154" text-anchor="middle" class="s">hard limits</text>
+          <line x1="1080" y1="130" x2="1098" y2="130" class="wire" marker-end="url(#b)"/>
+          <rect x="1100" y="90" width="84" height="80" rx="8" class="hw"/>
+          <text x="1142" y="124" text-anchor="middle" class="t">Save</text>
+          <text x="1142" y="144" text-anchor="middle" class="s">version N</text>
+          <text x="1142" y="196" text-anchor="middle" class="m">→ master</text>
+          <text x="1142" y="212" text-anchor="middle" class="m">→ dashboard</text>
+          <text x="1025" y="196" text-anchor="middle" class="m">400 s → 300 s</text>
+        </svg>
+      </div>
+      <figcaption>Between stages, code writes a one-line digest of each report. Small models copy raw reports they are handed, so they get the digest instead. The Director lists only the settings that should change, with a reason; everything else stays as it is in force. If any step fails, nothing changes: the master keeps the last ranges.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Bringing a farm online</h2>
+      <p>The onboarding assistant is the most capable model we can reach. The farmer talks; it asks follow-ups, looks up the place and the weather, and structures the answers.</p>
+    </div>
+    <figure>
+      <div class="canvas">
+        <svg viewBox="0 0 1200 180" role="img" aria-label="Onboarding: the farmer describes the farm in a chat; the assistant uses Open-Meteo, the crop file and the department template; it produces a farm profile, a hardware plan, hard limits and the agent network; the team approves; the first agent run sends ranges to the master.">
+          <defs>
+            <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arrow"/></marker>
+          </defs>
+          <rect x="16" y="50" width="170" height="80" rx="8" class="hw"/>
+          <text x="101" y="80" text-anchor="middle" class="t">Farmer chats</text>
+          <text x="101" y="100" text-anchor="middle" class="s">in their own words</text>
+          <text x="101" y="116" text-anchor="middle" class="s">no form</text>
+          <rect x="226" y="50" width="200" height="80" rx="8" class="ai"/>
+          <text x="326" y="80" text-anchor="middle" class="t-on">Onboarding assistant</text>
+          <text x="326" y="100" text-anchor="middle" class="s-on">asks follow-ups</text>
+          <text x="326" y="116" text-anchor="middle" class="s-on">qwen2.5:7b or cloud</text>
+          <rect x="196" y="146" width="260" height="26" rx="6" class="pill"/>
+          <text x="326" y="164" text-anchor="middle" class="m">Open-Meteo · crop file · template</text>
+          <rect x="466" y="30" width="330" height="120" rx="8" class="ai-soft"/>
+          <text x="482" y="56" class="t">What it produces</text>
+          <text x="482" y="78" class="s">1. Farm profile</text>
+          <text x="482" y="96" class="s">2. Hardware plan: sensor and actuator sets per field</text>
+          <text x="482" y="114" class="s">3. Hard limits and starting ranges</text>
+          <text x="482" y="132" class="s">4. Agent network as CrewAI definitions</text>
+          <rect x="836" y="50" width="160" height="80" rx="8" class="box"/>
+          <text x="916" y="80" text-anchor="middle" class="t">Team approves</text>
+          <text x="916" y="100" text-anchor="middle" class="s">checks hard limits</text>
+          <text x="916" y="116" text-anchor="middle" class="s">saves farms/&lt;id&gt;/</text>
+          <rect x="1036" y="50" width="148" height="80" rx="8" class="hw"/>
+          <text x="1110" y="80" text-anchor="middle" class="t">Go live</text>
+          <text x="1110" y="100" text-anchor="middle" class="s">first agent run</text>
+          <text x="1110" y="116" text-anchor="middle" class="s">ranges → master</text>
+          <line x1="186" y1="90" x2="224" y2="90" class="wire" marker-end="url(#c)"/>
+          <line x1="426" y1="90" x2="464" y2="90" class="wire" marker-end="url(#c)"/>
+          <line x1="796" y1="90" x2="834" y2="90" class="wire" marker-end="url(#c)"/>
+          <line x1="996" y1="90" x2="1034" y2="90" class="wire" marker-end="url(#c)"/>
+        </svg>
+      </div>
+      <figcaption>The template keeps the roles the sensors can feed, and drops the rest with a reason. For Al Khor's open-air beds, air quality and salinity are dropped, which leaves 10 specialists and a Farm Director for the two beds.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>The agent network for Al Khor</h2>
+      <p>From <code>farms/alkhor/network.json</code>. Models that aren't installed run on the route's fallback; only qwen2.5:3b and qwen2.5:7b are installed on the demo laptop.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="roster">
+        <thead><tr><th>Department</th><th>Specialists (code tools)</th><th>Model</th><th>May change</th><th>Left out</th></tr></thead>
+        <tbody>
+          <tr><td class="dept">Agri-Environment</td><td>Climate, Light &amp; Photosynthesis</td><td class="mono">llama3.2:3b</td><td>temp_air, humidity</td><td class="off">Air quality: open-air beds, no sensor</td></tr>
+          <tr><td class="dept">Soil &amp; Water</td><td>Irrigation, Nutrients &amp; Fertilizer</td><td class="mono">gemma2:2b</td><td>soil_moisture, level, pump_seconds</td><td class="off">Salinity: no EC sensor, so fertilizer advice only</td></tr>
+          <tr><td class="dept">Crop Science</td><td>Crop Physiology, Leaf Quality &amp; Pigment, Plant Health</td><td class="mono">phi3.5</td><td>nothing: advises</td><td></td></tr>
+          <tr><td class="dept">Data &amp; Analytics</td><td>Trend, Anomaly, Forecast (+ bed-to-bed comparison)</td><td class="mono">qwen2.5:3b</td><td>nothing</td><td></td></tr>
+          <tr><td class="dept">Market &amp; Strategy <span class="tag">extra</span></td><td>Market Price, Crop Suitability, Profitability, Web Research</td><td class="mono">qwen2.5:3b</td><td>never: advice only</td><td></td></tr>
+          <tr><td class="dept">Farm Director</td><td>One agent over all departments</td><td class="mono">qwen2.5:7b</td><td>the plan (clamped by code)</td><td class="off">Crop Suggestion: the crop is already chosen</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>How often each part runs</h2>
+    </div>
+    <div class="cadence">
+      <div class="tick">
+        <div class="when">10 s</div>
+        <div class="who">Sensor set → master → laptop</div>
+        <p>Every reading is stamped, written to the SD card and posted to <code>POST /log</code>. The master checks it against the ranges and switches the pump if needed.</p>
+      </div>
+      <div class="tick">
+        <div class="when">5 min</div>
+        <div class="who">Master checks the ranges</div>
+        <p><code>GET /ranges/version</code>: a new plan is downloaded and saved to the SD card only when the version changes. Daily is enough for the product.</p>
+      </div>
+      <div class="tick ai-tick">
+        <div class="when">6 h</div>
+        <div class="who">Agent run (or Run now)</div>
+        <p>00:00, 06:00, 12:00, 18:00. About 4–6 minutes with local models: the summariser, 5 departments, the Director, the Arabic message, the code check.</p>
+      </div>
+      <div class="tick ai-tick">
+        <div class="when">once</div>
+        <div class="who">Onboarding</div>
+        <p>When a farm joins, and again when a crop, field or sensor changes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>What the master and the laptop exchange</h2>
+      <p>Full details and an Arduino outline are in <code>MASTER_API.md</code>.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Endpoint</th><th>Carries</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">POST /log</td><td>Readings and pump switches, in the plan's CSV log format</td><td class="mono">F1,S1,soil,reading,soil_moisture,29.5,%,2026-09-25T14:00:10+03:00</td></tr>
+          <tr><td class="mono">GET /ranges/version</td><td>The latest plan's number</td><td class="mono">{"version": 13}</td></tr>
+          <tr><td class="mono">GET /ranges</td><td>The ranges file (304 if unchanged with <code>?have=</code>)</td><td class="mono">{"version":13, "F1":{"soil_moisture":[35,50], "pump_seconds":300, …}}</td></tr>
+          <tr><td class="mono">POST /run</td><td>Run now (the dashboard button does the same)</td><td class="mono">{"started": true}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Who decides what</h2>
+    </div>
+    <div class="rules">
+      <div class="rule">
+        <strong>Code counts and checks</strong>
+        <p>The summariser and the code tools compute every number. The code check clamps every range inside the hard limits set at onboarding and flags it. The master's firmware decides what each range means.</p>
+      </div>
+      <div class="rule ai-rule">
+        <strong>Agents judge and explain</strong>
+        <p>Departments turn the numbers into reports, and the Director turns them into one plan and a message for the farmer. The farmer approves or corrects the advice, and that log becomes the fine-tuning data for the final product.</p>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,120 @@
+Hydro Monitor: Agentic Backend Plan
+Sep 24, 2026 · @Von
+The big picture 
+The system has two halves: a hardware backend that collects readings and carries out actions, and an agentic backend that turns those readings into plans.
+flowchart LR
+  S[Sensors] --> E[Edge devices<br/>several per farm]
+  E --> M[Master node<br/>one per farm]
+  M -- readings every 10 s --> A[Agentic backend]
+  A -- plan --> M
+  M --> X[Pumps, fans, valves]
+• Hardware backend (hardware teammate): sensors, edge devices and the master node. A large farm needs several edge devices; the master collects from all of them, uploads the readings, and carries out the plans it receives.
+• Agentic backend (this doc): receives the data over the internet, analyses it, and sends a plan back to the master.
+The data
+The backend receives two kinds of data, and the agent controller reads only the farm profile, never the raw stream.
+Data
+Sent
+Contents
+Read by
+Continuous stream
+Every 10 s
+A list of readings: field, sensor, reading, timestamp
+Code that checks readings against ranges; Insight dashboard
+General farm profile
+At setup, then when something changes
+Location (Doha), crop status, notes, field size, soil/water test, which sensors are installed where
+Agent controller and departments
+One reading, in the shape drawn on the whiteboard:
+{"field": "F1", "sensor": "temp_air", "reading": 30.4, "timestamp": "2026-09-24T14:00:10+03:00"}
+Sensor variables listed on the whiteboard:
+• Temperature: air and water
+• Humidity: air and plant
+• Air composition: CO₂, CO, methane
+• Light intensity
+• pH and EC: soil or water
+• Water level
+Phase 1: initial setup
+Setup runs once per farm: the agent controller proposes an agent network for that farm, and a person approves it before anything runs.
+flowchart LR
+  A[Team installs hardware<br/>and notes what went where] --> B[Farm profile +<br/>controller system prompt]
+  B --> C[Controller proposes<br/>departments and agents]
+  C --> D{Person approves?}
+  D -- yes --> E[System starts running]
+  D -- no --> C
+Each proposed agent is a small model with its own system prompt, created only for sensors the farm actually has: a farm without a methane sensor gets no methane agent. The point of this step is that every farm is different, so the network adapts to each one instead of being hard-coded.
+Phase 2: the departments
+Three departments do the work: the crop department plans, the agro-environment department sets ideal ranges, and Insight builds the dashboard. Each department has a manager agent that hands work to its worker agents.
+Department
+Agent
+Produces
+Crop (planner)
+Crop suggestion
+What to plant and a rotation plan, from location, season and soil
+Crop
+Fertilizer
+Which fertilizer and how much, for the chosen crop and soil
+Crop
+Disease
+Likely diseases and which treatments to prepare
+Agro-environment (range setter)
+Temperature / humidity / weather
+Temperature and humidity ranges per crop, using the forecast
+Agro-environment
+Light
+Photoperiod and light intensity range
+Agro-environment
+Soil / water
+Composition range and watering plan: how much, and when
+Agro-environment
+Air quality
+CO₂ and methane ranges
+Insight
+Data analyst
+Graphs for the dashboard
+The order depends on the farm's starting point:
+• Scenario 1, no crop yet: crop suggestion → fertilizer → environment sets the ranges for the chosen crop.
+• Scenario 2, existing crop: skip crop suggestion and go straight to ranges, fertilizer and disease.
+The whiteboard checklist has crop planting ticked; ranges are next.
+Terms
+Providers make models, models do the work, and frameworks wire the models together into agents.
+Term
+What it is
+Examples from the board
+Provider
+The company that makes models
+OpenAI, Qwen (Alibaba), DeepSeek, Anthropic
+Model
+The worker that reads and writes text
+Qwen, Opus, Gemini, Mistral, Dolphin
+Framework
+A code library for wiring agents together
+CrewAI, Microsoft's agent framework, Swarm, Hermes Agent
+Copilot, also on the board, is a Microsoft product built on other companies' models, not a model itself.
+How it fits with the earlier design
+Agents plan and set the ranges; code watches the readings and enforces them.
+• The agro-environment department sets each crop's ranges once, filling the role of the fixed safe ranges in the earlier design notes.
+• Code checks every 10-second reading against those ranges and raises alerts, so no agent has to read the raw stream.
+• The controller reads only the farm profile, which keeps each model call small and cheap.
+This settles the earlier Python-vs-AI question: both are used, each for the job it does best.
+Four things to settle before building
+The meeting left four questions open, and the first two change what gets built.
+1. Hydroponic or soil for the demo? Asked in the meeting, never answered. It decides the sensors (EC and water temperature vs. soil moisture) and whether a soil department exists at all.
+2. Who builds the agent network? The framework won't design it. In CrewAI, each agent is a definition you write: role, goal, backstory and model, one JSON file per agent in new projects. Its hierarchical mode adds a manager agent that delegates tasks and checks results (CrewAI docs). So the controller's job is concrete: one model call that writes those agent files from the farm profile, then a person approves them. CrewAI is open source (MIT) and runs local models through Ollama (CrewAI on GitHub).
+3. What happens while it runs? The recording cuts off at the data analyst. Still to decide: how often each department re-runs, what triggers a re-run, and what the plan sent to the master looks like.
+4. The fine-tuning claim. The meeting suggested telling judges the models are fine-tuned. They won't be, and one question ("what data did you fine-tune on?") breaks the pitch. Say instead: specialised through system prompts, with fine-tuning planned once real harvest data exists.
+Build order
+Build a thin slice that works end to end first, so there is a demo even if later steps slip. The controller comes after the departments because it needs something to build.
+[ ] Decide hydroponic or soil, and fix the sensor list
+[ ] Agree both data formats (reading and farm profile) as example JSON with the hardware teammate
+[ ] Write a script that fakes the 10-second stream and one farm profile
+[ ] Install CrewAI, Ollama and a Qwen model; get one agent answering
+[ ] Build one department end to end: environment sets the temperature range for one crop → code checks readings → an alert fires
+[ ] Add the crop department: suggestion → fertilizer → disease
+[ ] Build the controller: farm profile in → proposed agent files out → approve → agents created
+[ ] Define the plan message the master receives, and send one to it
+[ ] Build the Insight dashboard
+[ ] Rehearse scenario 1 (no crop) from start to finish
+Sources
+• Team meeting recordings and whiteboard photos, 24 Sep 2026
+• CrewAI: Hierarchical process
+• CrewAI on GitHub

@@ -1,0 +1,19 @@
+{
+  "farm_id": "alkhor",
+  "name": "Al Khor amaranth beds",
+  "location": "Al Khor, Qatar",
+  "latitude": 25.684,
+  "longitude": 51.506,
+  "utc_offset": "+03:00",
+  "crop": "purple amaranth",
+  "fields": [
+    {"field_id": "F1", "type": "soil bed, open air", "size_m": [10, 20], "crop": "purple amaranth", "planted": "2026-09-04"},
+    {"field_id": "F2", "type": "soil bed, open air", "size_m": [10, 20], "crop": "purple amaranth", "planted": "2026-09-04"}
+  ],
+  "water": "tank, hose",
+  "fertilizer": "granular NPK, monthly",
+  "power": "shed, 30 m away",
+  "internet": "mobile data",
+  "problems": ["pale, scorched leaves in heat", "unsure how much to water"],
+  "_source": "Hydro Monitor plan 6.2: the example farm the onboarding assistant produced (illustrative)."
+}

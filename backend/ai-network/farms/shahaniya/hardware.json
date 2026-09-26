@@ -1,0 +1,159 @@
+{
+  "farm_id": "shahaniya",
+  "master": {
+    "module_id": "M1",
+    "hardware": "ESP32 + nRF24L01 + SD card",
+    "location": "new shed"
+  },
+  "fields": [
+    {
+      "field_id": "F1",
+      "sensor_set": {
+        "module_id": "S1",
+        "devices": [
+          {
+            "device_id": "dht11",
+            "kinds": [
+              "temp_air",
+              "humidity"
+            ]
+          },
+          {
+            "device_id": "soil",
+            "kinds": [
+              "soil_moisture"
+            ]
+          },
+          {
+            "device_id": "light",
+            "kinds": [
+              "light"
+            ]
+          }
+        ]
+      },
+      "actuator_set": {
+        "module_id": "A1",
+        "devices": [
+          {
+            "device_id": "relay1",
+            "kind": "pump",
+            "what": "drip-line pump"
+          }
+        ]
+      }
+    },
+    {
+      "field_id": "F2",
+      "sensor_set": {
+        "module_id": "S2",
+        "devices": [
+          {
+            "device_id": "dht11",
+            "kinds": [
+              "temp_air",
+              "humidity"
+            ]
+          },
+          {
+            "device_id": "soil",
+            "kinds": [
+              "soil_moisture"
+            ]
+          },
+          {
+            "device_id": "light",
+            "kinds": [
+              "light"
+            ]
+          }
+        ]
+      },
+      "actuator_set": {
+        "module_id": "A2",
+        "devices": [
+          {
+            "device_id": "relay1",
+            "kind": "pump",
+            "what": "drip-line pump"
+          }
+        ]
+      }
+    },
+    {
+      "field_id": "F3",
+      "sensor_set": {
+        "module_id": "S3",
+        "devices": [
+          {
+            "device_id": "dht11",
+            "kinds": [
+              "temp_air",
+              "humidity"
+            ]
+          },
+          {
+            "device_id": "soil",
+            "kinds": [
+              "soil_moisture"
+            ]
+          },
+          {
+            "device_id": "light",
+            "kinds": [
+              "light"
+            ]
+          }
+        ]
+      },
+      "actuator_set": {
+        "module_id": "A3",
+        "devices": [
+          {
+            "device_id": "relay1",
+            "kind": "pump",
+            "what": "drip-line pump"
+          }
+        ]
+      }
+    },
+    {
+      "field_id": "F4",
+      "sensor_set": {
+        "module_id": "S4",
+        "devices": [
+          {
+            "device_id": "dht11",
+            "kinds": [
+              "temp_air",
+              "humidity"
+            ]
+          },
+          {
+            "device_id": "soil",
+            "kinds": [
+              "soil_moisture"
+            ]
+          },
+          {
+            "device_id": "light",
+            "kinds": [
+              "light"
+            ]
+          }
+        ]
+      },
+      "actuator_set": {
+        "module_id": "A4",
+        "devices": [
+          {
+            "device_id": "relay1",
+            "kind": "pump",
+            "what": "drip-line pump"
+          }
+        ]
+      }
+    }
+  ],
+  "notes": "The master node and the farm computer go in the new shed. There is no mains power, so the master needs a solar panel and battery."
+}

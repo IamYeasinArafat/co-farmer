@@ -1,0 +1,93 @@
+{
+  "farm_id": "shahaniya",
+  "crop": "purple amaranth",
+  "hard": {
+    "soil_moisture": [
+      25,
+      55
+    ],
+    "temp_air": [
+      15,
+      32
+    ],
+    "humidity": [
+      35,
+      85
+    ],
+    "level": [
+      15,
+      100
+    ],
+    "pump_seconds": [
+      10,
+      300
+    ]
+  },
+  "start": {
+    "F1": {
+      "soil_moisture": [
+        30,
+        45
+      ],
+      "temp_air": [
+        24,
+        32
+      ],
+      "humidity": [
+        40,
+        80
+      ],
+      "pump_seconds": 120
+    },
+    "F2": {
+      "soil_moisture": [
+        30,
+        45
+      ],
+      "temp_air": [
+        24,
+        32
+      ],
+      "humidity": [
+        40,
+        80
+      ],
+      "pump_seconds": 120
+    },
+    "F3": {
+      "soil_moisture": [
+        30,
+        45
+      ],
+      "temp_air": [
+        24,
+        32
+      ],
+      "humidity": [
+        40,
+        80
+      ],
+      "pump_seconds": 120
+    },
+    "F4": {
+      "soil_moisture": [
+        30,
+        45
+      ],
+      "temp_air": [
+        24,
+        32
+      ],
+      "humidity": [
+        40,
+        80
+      ],
+      "pump_seconds": 120
+    }
+  },
+  "notes": {
+    "temp_air": "alert above 32 °C",
+    "level": "block the pump below 15 %, alert below 20 %",
+    "pump_seconds": "at most 300 s per command"
+  }
+}
