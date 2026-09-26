@@ -1,0 +1,369 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>The Daily Council</title>
+<style>
+:root{
+  --bg:#0a1512; --panel:#0f1e19; --panel-2:#14261f; --border:#22392f;
+  --text:#e9f4ee; --dim:#8fac9d; --dim-2:#5f7a6c;
+  --accent:#4ade80; --accent-dim:#1f4a34;
+  --net:#38bdf8; --net-dim:#123a4d;
+  --warn:#fbbf24; --warn-dim:#4a3a12;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+  --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+  padding-inline:16px; padding-block: max(18px, env(safe-area-inset-top,0px)) max(18px, env(safe-area-inset-bottom,0px));}
+.app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;
+  border-bottom:1px solid var(--border);padding-bottom:14px}
+.title-block h1{margin:0;font-size:22px;letter-spacing:.02em}
+.title-block .sub{color:var(--dim);font-size:13px;margin-top:4px;font-family:var(--mono)}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);
+  background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;
+  cursor:pointer;transition:border-color .15s, background .15s}
+button:hover{border-color:var(--accent);background:#16302446}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button:disabled:hover{border-color:var(--border);background:var(--panel-2)}
+
+.steps-nav{display:flex;gap:6px;flex-wrap:wrap}
+.steps-nav button{padding:6px 10px;font-size:11px;font-weight:700;font-family:var(--mono);
+  border-radius:999px;color:var(--dim)}
+.steps-nav button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+.pipeline{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px 12px;overflow-x:auto}
+.row1{display:flex;align-items:center;gap:0;flex-wrap:nowrap;justify-content:center;min-width:820px}
+.node{width:126px;min-height:96px;background:var(--panel-2);border:1px solid var(--border);
+  border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;gap:4px;flex:0 0 auto;
+  transition:border-color .25s, box-shadow .25s, transform .25s}
+.node .kind{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim-2);font-weight:700}
+.node .name{font-size:13px;font-weight:700}
+.node .stat{font-family:var(--mono);font-size:10.5px;color:var(--dim);line-height:1.45}
+.node .stat b{color:var(--text);font-weight:600}
+.node.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px -4px var(--accent);transform:translateY(-2px)}
+.node.warn-active{border-color:var(--warn);box-shadow:0 0 0 1px var(--warn),0 0 18px -4px var(--warn)}
+
+.conn{flex:0 0 30px;width:30px;height:2px;position:relative;background:var(--border);margin:0;align-self:center;top:26px}
+.conn .dot{position:absolute;top:50%;left:0;width:8px;height:8px;border-radius:50%;background:var(--dim-2);
+  transform:translate(-50%,-50%);transition:background .2s}
+.conn.flow{background:var(--net)}
+.conn.flow .dot{background:var(--net);box-shadow:0 0 8px 2px var(--net);animation:travel 1.1s ease-in-out infinite}
+.conn.flow.warnflow{background:var(--warn)}
+.conn.flow.warnflow .dot{background:var(--warn);box-shadow:0 0 8px 2px var(--warn)}
+@keyframes travel{0%{left:0}100%{left:100%}}
+
+.detail{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card h2{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim-2)}
+.step-title{font-size:17px;font-weight:700;margin-bottom:6px}
+.step-desc{font-size:13.5px;color:var(--dim);line-height:1.55}
+pre.payload{font-family:var(--mono);font-size:12px;line-height:1.6;background:#081210;
+  border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;margin:10px 0 0;color:#bdeed6;
+  max-height:280px}
+pre.payload .k{color:var(--net)}
+pre.payload .v{color:var(--accent)}
+pre.payload .w{color:var(--warn)}
+pre.payload .c{color:var(--dim-2)}
+
+.console{background:#070f0d;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+  height:150px;overflow-y:auto;font-family:var(--mono);font-size:12px;line-height:1.65}
+.console .ln{color:var(--dim);white-space:pre-wrap;word-break:break-word}
+.console .ln.hi{color:var(--accent)}
+.console .ln.net{color:var(--net)}
+.console .ln.warn{color:var(--warn)}
+.console .ln .t{color:var(--dim-2)}
+
+footer{text-align:center;color:var(--dim-2);font-size:11px;font-family:var(--mono);padding:4px 0 10px}
+
+@media (max-width:760px){
+  .detail{grid-template-columns:1fr}
+}
+</style>
+
+<div class="app">
+  <header>
+    <div class="title-block">
+      <h1>The Daily Council</h1>
+      <div class="sub" id="subline">step 1 / 9 — trigger</div>
+    </div>
+    <div class="controls">
+      <button id="btnReset">↺ Reset</button>
+      <button id="btnPrev">← Prev</button>
+      <button id="btnPlay" class="primary">▶ Auto</button>
+      <button id="btnNext" class="primary">Next →</button>
+    </div>
+  </header>
+
+  <div class="steps-nav" id="stepsNav"></div>
+
+  <div class="pipeline">
+    <div class="row1">
+      <div class="node" id="n-db">
+        <div class="kind">SQLite</div>
+        <div class="name">Database</div>
+        <div class="stat" id="dbStat">readings, ranges, plans</div>
+      </div>
+      <div class="conn" id="c1"><div class="dot"></div></div>
+      <div class="node" id="n-sum">
+        <div class="kind">summariser.py</div>
+        <div class="name">Summarise</div>
+        <div class="stat" id="sumStat">code, no AI</div>
+      </div>
+      <div class="conn" id="c2"><div class="dot"></div></div>
+      <div class="node" id="n-tools">
+        <div class="kind">agents/*.py</div>
+        <div class="name">Code Tools</div>
+        <div class="stat" id="toolsStat">10 specialists</div>
+      </div>
+      <div class="conn" id="c3"><div class="dot"></div></div>
+      <div class="node" id="n-dept" style="width:150px">
+        <div class="kind">CrewAI · sequential</div>
+        <div class="name">Departments</div>
+        <div class="stat" id="deptStat">idle</div>
+      </div>
+      <div class="conn" id="c4"><div class="dot"></div></div>
+      <div class="node" id="n-director">
+        <div class="kind">CrewAI</div>
+        <div class="name">Farm Director</div>
+        <div class="stat" id="directorStat">qwen2.5:7b</div>
+      </div>
+      <div class="conn" id="c5"><div class="dot"></div></div>
+      <div class="node" id="n-check">
+        <div class="kind">checker.py</div>
+        <div class="name">Check</div>
+        <div class="stat" id="checkStat">code, no AI</div>
+      </div>
+      <div class="conn" id="c6"><div class="dot"></div></div>
+      <div class="node" id="n-master">
+        <div class="kind">ESP32</div>
+        <div class="name">Master Node</div>
+        <div class="stat" id="masterStat">on plan v87</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="card">
+      <h2>What's happening</h2>
+      <div class="step-title" id="stepTitle"></div>
+      <div class="step-desc" id="stepDesc"></div>
+      <pre class="payload" id="payload"></pre>
+    </div>
+    <div class="card">
+      <h2>Event log</h2>
+      <div class="console" id="console"></div>
+    </div>
+  </div>
+
+  <footer>Al Khor · purple amaranth · F1, F2 — day 22 after planting · every 6 hours, or "Run now" · network.py</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]}); }
+  function span(cls,s){ return '<span class="'+cls+'">'+esc(s)+"</span>"; }
+
+  var STEPS = [
+    { // 0
+      title: "Trigger — every 6 hours, or “Run now”",
+      desc: "server.py fires this on a schedule; a person can also press “Run now” in the dashboard (app.py). Either way it's the same run().",
+      active: ["n-db"],
+      deptStat: "idle",
+      payload: function(){
+        return span("c","// network.run(trigger=\"schedule\")")+"\n"+
+          "run_id    = "+span("v","142")+"\n"+
+          "farm_id   = "+span("v",'"alkhor"')+"\n"+
+          "trigger   = "+span("v",'"schedule"')+"\n"+
+          "started   = "+span("v",'"2026-09-26T12:05:03+03:00"');
+      },
+      log: ["[network] run() started · farm=alkhor · trigger=schedule · run_id=142"]
+    },
+    { // 1
+      title: "Summarise the last 24 h + the forecast (code, no AI)",
+      desc: "summariser.py reads the raw sensor rows straight from the database — the same rows Signal Path showed landing there — and adds the Open-Meteo forecast. No model runs yet.",
+      active: ["n-db","n-sum"], flow: "c1", deptStat: "idle",
+      payload: function(){
+        return span("c","// summariser.summarise(con, farm) — 288 rows/field, last 24h")+"\n"+
+          "F1.soil_moisture = "+span("v","34 %")+span("c","  (trend -1.8 %/h)")+"\n"+
+          "F1.temp_air      = "+span("v","36.2 °C")+span("c","  (yesterday max 39.1 °C)")+"\n"+
+          "F2.soil_moisture = "+span("v","41 %")+span("c","  (trend -0.6 %/h)")+"\n"+
+          "F2.temp_air      = "+span("v","35.8 °C")+"\n"+
+          "level (tank)     = "+span("v","62 %")+span("c","  (shared by F1 & F2)")+"\n"+
+          "forecast_today   = "+span("v","up to 41 °C ~13:20, >32 °C 10:40–16:20")
+      },
+      log: ["[network] summarise(): 288 rows/field (24h @5min) + forecast_today, forecast_tomorrow, yesterday"]
+    },
+    { // 2
+      title: "Code tools — each specialist counts and checks (still no model)",
+      desc: "Every specialist in agents/*.py is a short Python function, not a model call: range_monitor, irrigation, trend, anomaly... They do the counting so the small local models only have to judge, not calculate.",
+      active: ["n-sum","n-tools"], flow: "c2", deptStat: "idle",
+      payload: function(){
+        return span("c","// code_tools(): one finding per specialist")+"\n"+
+          "Climate · F1/F2           "+span("v","OK")+"\n"+
+          "Light & Photosynthesis     "+span("v","OK")+"\n"+
+          "Irrigation · F1           "+span("w","WARN")+span("c","  drying 3× faster than F2")+"\n"+
+          "Nutrients & Fertilizer     "+span("v","OK")+span("c","  next feed due 2026-10-18")+"\n"+
+          "Crop Physiology            "+span("v","OK")+span("c","  day 22, vegetative")+"\n"+
+          "Leaf Quality & Pigment     "+span("w","WARN")+span("c","  heat/light pigment-fade risk")+"\n"+
+          "Plant Health               "+span("w","WARN")+span("c","  pale-edge risk on F1")+"\n"+
+          "Trend / Anomaly / Forecast "+span("v","OK")+span("c","  no sensor fault detected")
+      },
+      log: ["[network] code_tools(): 10 specialists ran · 3 WARN (F1: irrigation, leaf quality, plant health)"]
+    },
+    { // 3
+      title: "Stage 1 — Agri-Environment & Soil & Water (CrewAI)",
+      desc: "Two local models, run one after another as a CrewAI crew, each writing back a fixed-JSON report. context=[] on purpose — otherwise a small model just copies the previous task's report instead of writing its own.",
+      active: ["n-tools","n-dept"], flow: "c3", deptStat: "Agri-Environment · Soil & Water",
+      payload: function(){
+        return span("k","ENV")+span("c"," (llama3.2:3b)")+"\n"+
+          '"Hot (36.2°C now, forecast 41°C ~13:20) but inside range; no change needed."\n'+
+          span("c","warnings: [\"forecast crosses the 32°C alert window 10:40–16:20\"]")+"\n\n"+
+          span("k","SOIL")+span("c"," (gemma2:2b)")+"\n"+
+          '"F1 drying much faster than F2 (-1.8 vs -0.6 %/h); tank at 62%. Proposing earlier, longer watering for F1."\n'+
+          span("c","ranges: [F1 soil_moisture ")+span("w","38–58")+span("c",'] pump_seconds: [F1 ')+span("v","150s")+span("c","]")
+      },
+      log: ["[crew] stage 1 · agri_environment → llama3.2:3b · soil_water → gemma2:2b"]
+    },
+    { // 4
+      title: "Stage 2 — Crop Science & Data & Analytics (reads the stage-1 digest)",
+      desc: "digest() compresses each stage-1 report into one line — small models copy raw JSON they're handed as context, so they get a digest instead. Market & Strategy (advice-only) runs alongside but never changes a range.",
+      active: ["n-dept"], deptStat: "Crop Science · Data & Analytics",
+      payload: function(){
+        return span("k","CROP")+span("c"," (phi3.5, reads ENV+SOIL digest)")+"\n"+
+          '"Day 22, vegetative stage. Heat and light stress can fade the red pigment; pale edges match heat/light response, not obviously nitrogen."\n\n'+
+          span("k","DATA")+span("c"," (qwen2.5:3b)")+"\n"+
+          '"F1 soil moisture falling 3× faster than F2; 6h projection 27% by 15:00, under the 30% floor. No sensor fault — this is real."'
+      },
+      log: ["[crew] stage 2 · crop_science → phi3.5 · data_analytics → qwen2.5:3b · market_strategy (advice-only) → qwen2.5:3b"]
+    },
+    { // 5
+      title: "Stage 3 — the Farm Director writes the plan",
+      desc: "One larger model reads every department's digest, not the raw data, and turns six short reports into one plan: which ranges to change, a message for the farmer, and to-dos for a person.",
+      active: ["n-dept","n-director"], flow: "c4", deptStat: "done · 6 reports",
+      payload: function(){
+        return span("k","DirectorPlan")+span("c"," (qwen2.5:7b)")+"\n"+
+          "changes: F1 soil_moisture "+span("w","30–45 → 38–58")+span("c",", F1 pump_seconds ")+span("v","120 → 150s")+"\n"+
+          'message: "It’s very hot today (up to 41°C around 13:20) and F1 is drying much faster than F2. '+
+          'I’ve made F1 water sooner and longer; the tank has enough."\n'+
+          "todos: [\"Check F1's drip emitters — it's drying ~3× faster than F2\", \"Shade cloth over the beds 11:00–15:00\"]\n\n"+
+          span("c","then crew.translate() → the same message and to-dos in Modern Standard Arabic")
+      },
+      log: ["[crew] director → qwen2.5:7b · translator → qwen2.5:7b (Arabic)"]
+    },
+    { // 6
+      title: "Check — code clamps every range inside the hard limits",
+      desc: "checker.py never trusts the model's numbers. F1's proposed band goes past the hard limit, so it's clamped and flagged; everything else the Director asked for is already inside the limits and passes untouched.",
+      active: ["n-director","n-check"], warnActive: ["n-check"], flow: "c5", flowWarn: true,
+      payload: function(){
+        return span("c","// checker.check(proposed, current, hard, kinds)")+"\n"+
+          "F1 soil_moisture  proposed "+span("w","38–58")+"  hard 25–55  → used "+span("v","38–55")+"\n"+
+          span("w","  FLAG clamped")+span("c"," — \"38–58 % goes past the 25–55 % hard limits\"")+"\n"+
+          "F1 pump_seconds   proposed "+span("v","150s")+"  (+25% vs 120s, ≤ 50% cap) → used "+span("v","150s")+span("c"," no flag")+"\n"+
+          "F2, temp_air, humidity  "+span("c","unchanged — no flag")
+      },
+      log: ["[checker] F1 soil_moisture 38–58 → 38–55 (hard limit 25–55) · 1 flag · F2 unchanged"]
+    },
+    { // 7
+      title: "Save — a new version, ready for the master",
+      desc: "db.save_plan() writes the checked ranges, the message, the to-dos and every report as one new version. The master has no idea this run happened yet — it's just a row in the database until its next poll.",
+      active: ["n-check","n-master"], flow: "c6", deptStat: "done · 6 reports",
+      payload: function(){
+        return span("c","// db.save_plan(con, \"alkhor\", ...)")+"\n"+
+          "version     "+span("v","87")+" → "+span("v","88")+"\n"+
+          "valid_from  "+span("v",'"2026-09-26T12:10:03+03:00"')+span("c","  (+5 min, plan 6.3)")+"\n"+
+          "flags       "+span("v","1")+"\n"+
+          "made_by     "+span("v",'"qwen2.5:7b"')
+      },
+      log: ["[network] save_plan(): version 87 → 88 · valid_from 12:10:03+03:00 · 6 reports stored"]
+    },
+    { // 8
+      title: "The master picks it up at its next check",
+      desc: "Exactly the GET /ranges call from Signal Path's last step — the master doesn't know an agent network exists. It just asks the farm computer for a newer version, and this time there is one.",
+      active: ["n-master"], deptStat: "done · 6 reports",
+      payload: function(){
+        return span("k","GET")+" /ranges/version → "+span("v",'{"version": 88}')+"\n"+
+          span("k","GET")+" /ranges?have=87 →\n"+
+          span("v",'{"version":88,"F1":{"soil_moisture":[38,55],"pump_seconds":150,...},"F2":{...unchanged...}}')
+      },
+      log: ["[master] version 87 → 88: new ranges saved to SD, now enforcing"]
+    }
+  ];
+
+  var i = 0, playing = false, timer = null;
+  var nodeIds = ["n-db","n-sum","n-tools","n-dept","n-director","n-check","n-master"];
+  var connIds = ["c1","c2","c3","c4","c5","c6"];
+
+  var nav = document.getElementById("stepsNav");
+  STEPS.forEach(function(s,idx){
+    var b = document.createElement("button");
+    b.textContent = (idx+1);
+    b.title = s.title;
+    b.addEventListener("click", function(){ go(idx); });
+    nav.appendChild(b);
+  });
+
+  function render(){
+    var s = STEPS[i];
+
+    nodeIds.forEach(function(id){
+      var el = document.getElementById(id);
+      el.classList.toggle("active", (s.active||[]).indexOf(id) !== -1);
+      el.classList.toggle("warn-active", (s.warnActive||[]).indexOf(id) !== -1);
+    });
+    connIds.forEach(function(id){
+      var el = document.getElementById(id);
+      el.classList.toggle("flow", s.flow === id);
+      el.classList.toggle("warnflow", s.flow === id && !!s.flowWarn);
+    });
+
+    document.getElementById("deptStat").textContent = s.deptStat || "idle";
+    document.getElementById("masterStat").textContent = i>=7 ? (i===7?"receiving v88":"on plan v88") : "on plan v87";
+
+    document.getElementById("stepTitle").textContent = (i+1)+". "+s.title;
+    document.getElementById("stepDesc").textContent = s.desc;
+    document.getElementById("payload").innerHTML = s.payload();
+    document.getElementById("subline").textContent = "step "+(i+1)+" / "+STEPS.length+" — "+s.title.toLowerCase();
+
+    var lines = [];
+    for (var k=0;k<=i;k++){
+      STEPS[k].log.forEach(function(l){ lines.push({t:"t+"+(k*4)+"s", text:l, step:k}); });
+    }
+    var cons = document.getElementById("console");
+    cons.innerHTML = lines.map(function(l){
+      var cls = "ln" + (l.step===i ? " hi" : "") + (/GET |POST /.test(l.text) ? " net":"") + (/WARN|FLAG|flag/.test(l.text) && l.step===i ? " warn":"");
+      return '<div class="'+cls+'"><span class="t">'+l.t+"  </span>"+esc(l.text)+"</div>";
+    }).join("");
+    cons.scrollTop = cons.scrollHeight;
+
+    Array.prototype.forEach.call(nav.children, function(b,idx){ b.classList.toggle("on", idx===i); });
+    document.getElementById("btnPrev").disabled = i===0;
+    document.getElementById("btnNext").disabled = i===STEPS.length-1;
+  }
+
+  function go(idx){ i = Math.max(0, Math.min(STEPS.length-1, idx)); render(); }
+  function next(){ if (i < STEPS.length-1) { go(i+1); } else { stop(); } }
+  function prev(){ go(i-1); }
+  function play(){ playing = true; document.getElementById("btnPlay").textContent = "⏸ Pause";
+    timer = setInterval(function(){ if (i>=STEPS.length-1){ stop(); } else { next(); } }, 3600); }
+  function stop(){ playing = false; document.getElementById("btnPlay").textContent = "▶ Auto"; clearInterval(timer); }
+
+  document.getElementById("btnNext").addEventListener("click", function(){ stop(); next(); });
+  document.getElementById("btnPrev").addEventListener("click", function(){ stop(); prev(); });
+  document.getElementById("btnPlay").addEventListener("click", function(){ playing ? stop() : play(); });
+  document.getElementById("btnReset").addEventListener("click", function(){ stop(); go(0); });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key==="ArrowRight"){ stop(); next(); }
+    if (e.key==="ArrowLeft"){ stop(); prev(); }
+  });
+
+  render();
+})();
+</script>
+
+</body></html>

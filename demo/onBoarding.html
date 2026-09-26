@@ -1,0 +1,320 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>First Conversation</title>
+<style>
+:root{
+  --bg:#0a1512; --panel:#0f1e19; --panel-2:#14261f; --border:#22392f;
+  --text:#e9f4ee; --dim:#8fac9d; --dim-2:#5f7a6c;
+  --accent:#4ade80; --accent-dim:#1f4a34;
+  --net:#38bdf8; --net-dim:#123a4d;
+  --warn:#fbbf24; --warn-dim:#4a3a12;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+  --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+  padding-inline:16px; padding-block: max(18px, env(safe-area-inset-top,0px)) max(18px, env(safe-area-inset-bottom,0px));}
+.app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;
+  border-bottom:1px solid var(--border);padding-bottom:14px}
+.title-block h1{margin:0;font-size:22px;letter-spacing:.02em}
+.title-block .sub{color:var(--dim);font-size:13px;margin-top:4px;font-family:var(--mono)}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);
+  background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;
+  cursor:pointer;transition:border-color .15s, background .15s}
+button:hover{border-color:var(--accent);background:#16302446}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button:disabled:hover{border-color:var(--border);background:var(--panel-2)}
+
+.steps-nav{display:flex;gap:6px;flex-wrap:wrap}
+.steps-nav button{padding:6px 10px;font-size:11px;font-weight:700;font-family:var(--mono);
+  border-radius:999px;color:var(--dim)}
+.steps-nav button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+.detail{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim-2);
+  display:flex;align-items:center;justify-content:space-between}
+.step-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:12px;min-height:20px}
+
+.chat{display:flex;flex-direction:column;gap:8px;height:300px;overflow-y:auto;padding-right:2px}
+.bubble{max-width:80%;padding:9px 12px;border-radius:12px;font-size:13.5px;line-height:1.5}
+.bubble.assistant{align-self:flex-start;background:var(--accent-dim);border:1px solid #2c5c42;
+  border-bottom-left-radius:3px;color:#d7f7e4}
+.bubble.farmer{align-self:flex-end;background:var(--net-dim);border:1px solid #1c5170;
+  border-bottom-right-radius:3px;color:#d6f0fd;text-align:right}
+.bubble.tool{align-self:center;background:transparent;color:var(--dim-2);font-family:var(--mono);
+  font-size:11.5px;border:1px dashed var(--border);border-radius:8px}
+.bubble .who{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--dim-2);margin-bottom:3px;font-weight:700}
+.bubble.farmer .who{text-align:right}
+
+.profile{display:flex;flex-direction:column;gap:0;height:300px;overflow-y:auto}
+.prow{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.prow:last-child{border-bottom:none}
+.prow .k{width:88px;flex:0 0 88px;color:var(--dim-2);font-family:var(--mono);font-size:11.5px;
+  text-transform:uppercase;letter-spacing:.04em;padding-top:1px}
+.prow .v{flex:1;font-family:var(--mono);font-size:12.5px;color:var(--text)}
+.prow.new .v{color:var(--accent)}
+.prow.empty .v{color:var(--dim-2);font-style:italic}
+.placeholder{color:var(--dim-2);font-size:13px;font-style:italic;padding:20px 4px}
+
+.deliverables{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.dcard{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;
+  min-height:150px;position:relative;transition:border-color .3s, opacity .3s}
+.dcard.locked{opacity:.4}
+.dcard h3{margin:0 0 8px;font-size:12px;color:var(--dim-2);text-transform:uppercase;letter-spacing:.06em}
+.dcard .lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:var(--dim-2)}
+.dcard .body{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--dim)}
+.dcard .body b{color:var(--text)}
+.dcard .body .hi{color:var(--accent)}
+.dcard.unlocked{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px -6px var(--accent)}
+
+.banner{display:none;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);
+  border-radius:12px;padding:12px 16px;font-size:13.5px;font-weight:600;align-items:center;gap:10px}
+.banner.show{display:flex}
+
+footer{text-align:center;color:var(--dim-2);font-size:11px;font-family:var(--mono);padding:4px 0 10px}
+
+@media (max-width:760px){
+  .detail{grid-template-columns:1fr}
+  .deliverables{grid-template-columns:1fr 1fr}
+}
+</style>
+
+<div class="app">
+  <header>
+    <div class="title-block">
+      <h1>First Conversation</h1>
+      <div class="sub" id="subline">step 1 / 10 — the assistant opens</div>
+    </div>
+    <div class="controls">
+      <button id="btnReset">↺ Reset</button>
+      <button id="btnPrev">← Prev</button>
+      <button id="btnPlay" class="primary">▶ Auto</button>
+      <button id="btnNext" class="primary">Next →</button>
+    </div>
+  </header>
+
+  <div class="steps-nav" id="stepsNav"></div>
+
+  <div class="detail">
+    <div class="card">
+      <h2>Onboarding chat <span id="whoBadge" style="font-family:var(--mono);color:var(--dim-2)">Al Khor, Qatar</span></h2>
+      <div class="step-title" id="stepTitle"></div>
+      <div class="step-desc" id="stepDesc"></div>
+      <div class="chat" id="chat"></div>
+    </div>
+    <div class="card">
+      <h2>Farm profile — building live</h2>
+      <div class="profile" id="profile"></div>
+    </div>
+  </div>
+
+  <div class="banner" id="banner">✓ Saved as <b>farms/alkhor/*.json</b> · version 1 pushed — the Master Node picks it up at its next check and starts enforcing.</div>
+
+  <div class="deliverables" id="deliverables">
+    <div class="dcard locked" id="d-profile"><h3>Farm profile</h3><div class="body"></div><div class="lock">🔒</div></div>
+    <div class="dcard locked" id="d-hardware"><h3>Hardware plan</h3><div class="body"></div><div class="lock">🔒</div></div>
+    <div class="dcard locked" id="d-limits"><h3>Hard limits &amp; starting ranges</h3><div class="body"></div><div class="lock">🔒</div></div>
+    <div class="dcard locked" id="d-network"><h3>Agent network</h3><div class="body"></div><div class="lock">🔒</div></div>
+  </div>
+
+  <footer>the four things a person on the team reviews before anything is installed or run — plan §3.2</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]}); }
+
+  var STEPS = [
+    { // 0
+      title: "The assistant opens",
+      desc: "No form — it asks one clear question at a time and structures the farmer's own words itself.",
+      chat: [{r:"assistant", t:"Hello! I'll help set up the system for your farm. Where is it?"}]
+    },
+    { // 1
+      title: "Location → a live weather lookup",
+      desc: "Open-Meteo geocodes the farm and pulls the week's forecast — shown as a tool line, folded into the profile behind the scenes.",
+      chat: [
+        {r:"farmer", t:"Near Al Khor, north of Doha."},
+        {r:"tool", t:"🔎 Al Khor, Qatar · 25.68°N, 51.53°E — next 7 days: highs 36–41°C, lows 27–30°C"},
+        {r:"assistant", t:"Thanks. It's still very hot there this week. What do you grow, and how?"}
+      ],
+      profile: [["Location","Al Khor, Qatar"]]
+    },
+    { // 2
+      title: "Beds, crop and water",
+      desc: "Code parses “two soil beds” and “10 by 20 metres” — the model only acknowledges; the numbers come from regex, not a guess.",
+      chat: [
+        {r:"farmer", t:"Purple amaranth, in two soil beds, each about 10 by 20 metres. I water with a hose from a tank."},
+        {r:"assistant", t:"Are the beds in the open air, or covered?"}
+      ],
+      profile: [["Fields","F1, F2 · 10×20 m · purple amaranth"], ["Water","tank, hose"]]
+    },
+    { // 3
+      title: "Open air, not covered",
+      desc: "This one answer already rules out an air-quality sensor and a fan — the hardware plan adapts to it later.",
+      chat: [
+        {r:"farmer", t:"Open air. Sometimes I put up shade cloth."},
+        {r:"assistant", t:"Is there electricity and internet near the beds?"}
+      ],
+      profile: [["Type","soil bed, open air (F1 &amp; F2)"]]
+    },
+    { // 4
+      title: "Power and connectivity",
+      desc: "",
+      chat: [
+        {r:"farmer", t:"Electricity in the shed, about 30 metres away. Mobile data works."},
+        {r:"assistant", t:"What goes wrong most often?"}
+      ],
+      profile: [["Power","shed, 30 m away"], ["Internet","mobile data"]]
+    },
+    { // 5
+      title: "The recurring problem",
+      desc: "This line steers the Crop Science and Soil & Water departments' backstories later.",
+      chat: [
+        {r:"farmer", t:"In the heat the leaves go pale and burn at the edges, and I never know if I'm watering too much."},
+        {r:"assistant", t:"When did you plant, and do you use fertilizer?"}
+      ],
+      profile: [["Problems","pale, scorched leaves in heat; unsure how much to water"]]
+    },
+    { // 6
+      title: "Planting date and fertilizer",
+      desc: "“Three weeks ago” is resolved to a real date in code — small models get relative dates wrong.",
+      chat: [
+        {r:"farmer", t:"About three weeks ago. Granular NPK once a month."}
+      ],
+      profile: [["Planted","2026-09-04 (“three weeks ago”)"], ["Fertilizer","granular NPK, monthly"]]
+    },
+    { // 7
+      title: "The assistant proposes a design",
+      desc: "Profile complete — it designs the hardware plan and the agent network from it, and asks before anything is built.",
+      chat: [
+        {r:"assistant", t:"Here's what I suggest. Each bed gets a sensor set and a small pump on a drip line, and the master goes in the shed. The beds are in the open air, so you don't need an air quality sensor. I'll also set up 10 AI specialists and a Farm Director for your two beds. Shall I show you the details?"},
+        {r:"farmer", t:"Yes, go ahead."}
+      ]
+    },
+    { // 8
+      title: "Four outputs, generated",
+      desc: "The four things a person on the team reviews before anything is installed or run.",
+      chat: [],
+      unlock: true
+    },
+    { // 9
+      title: "Team approves → the farm goes live",
+      desc: "farm.save_farm() writes the four files, makes this the active farm, and saves version 1 — the starting ranges.",
+      chat: [],
+      unlock: true, saved: true
+    }
+  ];
+
+  var DELIVERABLES = {
+    profile: '<b>location</b>: Al Khor, Qatar\n<b>fields</b>: [F1, F2] soil bed, open air\n  size_m: [10, 20] · crop: purple amaranth\n  planted: 2026-09-04\n<b>water</b>: tank, hose\n<b>fertilizer</b>: granular NPK, monthly\n<b>power</b>: shed, 30 m away\n<b>internet</b>: mobile data\n<b>problems</b>: [pale/scorched leaves, over-watering unsure]',
+    hardware: '<b>F1</b> · Sensor S1: <span class="hi">dht11, soil, light, level</span>\n     Actuator A1: drip pump (relay1)\n<b>F2</b> · Sensor S2: <span class="hi">dht11, soil, light</span>\n     Actuator A2: drip pump (relay1)\n\nMaster + farm computer → the shed.\nOnly S1 measures the tank (F1 &amp; F2 share it).',
+    limits: 'soil_moisture   hard <span class="hi">25–55%</span>   start 30–45%\npump_seconds    hard <span class="hi">≤300s</span>    start 120s\ntemp_air        hard <span class="hi">alert &gt;32°C</span> start 24–32°C\nlevel (tank)    hard <span class="hi">block &lt;15%</span> start alert &lt;20%',
+    network: 'Agri-Environment: Climate, Light <span class="hi">✓</span>\n  (Air quality — no sensor, open air)\nSoil &amp; Water: Irrigation, Fertilizer <span class="hi">✓</span>\n  (Salinity — no EC sensor)\nCrop Science: Physiology, Leaf, Health <span class="hi">✓</span>\nData &amp; Analytics: Trend, Anomaly, Forecast <span class="hi">✓</span>\n\n<b>10 specialists + 1 Farm Director</b>'
+  };
+
+  var i = 0, playing = false, timer = null;
+  var chatLog = [];
+  var profileState = {};
+  var profileOrder = [];
+
+  var nav = document.getElementById("stepsNav");
+  STEPS.forEach(function(s,idx){
+    var b = document.createElement("button");
+    b.textContent = (idx+1);
+    b.title = s.title;
+    b.addEventListener("click", function(){ go(idx); });
+    nav.appendChild(b);
+  });
+
+  function rebuildTo(idx){
+    chatLog = [];
+    profileState = {};
+    profileOrder = [];
+    for (var k=0;k<=idx;k++){
+      var s = STEPS[k];
+      (s.chat||[]).forEach(function(c){ chatLog.push({r:c.r, t:c.t, step:k}); });
+      (s.profile||[]).forEach(function(p){
+        if (!(p[0] in profileState)) profileOrder.push(p[0]);
+        profileState[p[0]] = {v:p[1], step:k};
+      });
+    }
+  }
+
+  function render(){
+    var s = STEPS[i];
+    rebuildTo(i);
+
+    document.getElementById("stepTitle").textContent = (i+1)+". "+s.title;
+    document.getElementById("stepDesc").textContent = s.desc || "";
+    document.getElementById("subline").textContent = "step "+(i+1)+" / "+STEPS.length+" — "+s.title.toLowerCase();
+
+    var chatEl = document.getElementById("chat");
+    if (chatLog.length === 0){
+      chatEl.innerHTML = '<div class="placeholder">the conversation starts here</div>';
+    } else {
+      chatEl.innerHTML = chatLog.map(function(c){
+        var label = c.r === "assistant" ? "Assistant" : c.r === "farmer" ? "Farmer" : "Tool";
+        return '<div class="bubble '+c.r+'"><span class="who">'+label+'</span>'+esc(c.t)+'</div>';
+      }).join("");
+    }
+    chatEl.scrollTop = chatEl.scrollHeight;
+
+    var profEl = document.getElementById("profile");
+    if (profileOrder.length === 0){
+      profEl.innerHTML = '<div class="placeholder">nothing known yet</div>';
+    } else {
+      profEl.innerHTML = profileOrder.map(function(k){
+        var row = profileState[k];
+        return '<div class="prow'+(row.step===i?" new":"")+'"><div class="k">'+esc(k)+'</div><div class="v">'+row.v+'</div></div>';
+      }).join("");
+    }
+
+    var unlocked = !!s.unlock;
+    ["d-profile","d-hardware","d-limits","d-network"].forEach(function(id,idx){
+      var el = document.getElementById(id);
+      el.classList.toggle("locked", !unlocked);
+      el.classList.toggle("unlocked", unlocked);
+      var key = ["profile","hardware","limits","network"][idx];
+      el.querySelector(".body").innerHTML = unlocked ? DELIVERABLES[key] : "";
+    });
+
+    document.getElementById("banner").classList.toggle("show", !!s.saved);
+
+    Array.prototype.forEach.call(nav.children, function(b,idx){ b.classList.toggle("on", idx===i); });
+    document.getElementById("btnPrev").disabled = i===0;
+    document.getElementById("btnNext").disabled = i===STEPS.length-1;
+  }
+
+  function go(idx){ i = Math.max(0, Math.min(STEPS.length-1, idx)); render(); }
+  function next(){ if (i < STEPS.length-1) { go(i+1); } else { stop(); } }
+  function prev(){ go(i-1); }
+  function play(){ playing = true; document.getElementById("btnPlay").textContent = "⏸ Pause";
+    timer = setInterval(function(){ if (i>=STEPS.length-1){ stop(); } else { next(); } }, 3600); }
+  function stop(){ playing = false; document.getElementById("btnPlay").textContent = "▶ Auto"; clearInterval(timer); }
+
+  document.getElementById("btnNext").addEventListener("click", function(){ stop(); next(); });
+  document.getElementById("btnPrev").addEventListener("click", function(){ stop(); prev(); });
+  document.getElementById("btnPlay").addEventListener("click", function(){ playing ? stop() : play(); });
+  document.getElementById("btnReset").addEventListener("click", function(){ stop(); go(0); });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key==="ArrowRight"){ stop(); next(); }
+    if (e.key==="ArrowLeft"){ stop(); prev(); }
+  });
+
+  render();
+})();
+</script>
+
+</body></html>
